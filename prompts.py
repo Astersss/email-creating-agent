@@ -14,7 +14,7 @@ IMAGE RULES:
 - For mood/seasonal/celebratory/re-engagement/loyalty emails: include exactly one <mj-image src="{{IMAGE_URL}}" alt="..." width="600px" align="center" /> in the MJML where an image would appear, AND include an "image_prompt" field in your JSON output describing the image to generate (max 200 chars, atmospheric/mood-focused, no brand logos or real products)
 - For product/promotional/sale/launch emails: include exactly one <mj-image src="{{IMAGE_URL}}" alt="..." width="600px" align="center" /> where the product image should appear, but do NOT include "image_prompt" (a real product photo will be substituted)
 - For transactional emails: include no mj-image at all, no {{IMAGE_URL}}, no image_prompt
-- If logo_url is provided: always include it as the first mj-image in the email using the exact logo_url as src (logos are exempt from the URL rule)
+- If logo is provided: always include it as the first mj-image in the email using src="{{LOGO_URL}}" exactly as written
 
 EMAIL BEST PRACTICES:
 - Single, clear call-to-action (CTA)
@@ -48,7 +48,7 @@ def build_user_prompt(
     if brand.secondary_color:
         brand_lines.append(f"Secondary color: {brand.secondary_color}")
     if brand.logo_url:
-        brand_lines.append(f"Logo URL: {brand.logo_url}")
+        brand_lines.append("Logo: provided")
     if brand.font_family:
         brand_lines.append(f"Font family: {brand.font_family}")
     if brand.brand_voice:
@@ -67,7 +67,7 @@ def build_user_prompt(
         styling = "- Use a clean neutral palette (#333333 for text, #0066CC for buttons)"
 
     if brand.logo_url:
-        styling += f'\n- Add the logo as the first mj-image using src="{brand.logo_url}"'
+        styling += '\n- Add the logo as the first mj-image using src="{{LOGO_URL}}"'
 
     font = brand.font_family or "Avenir, Helvetica, Arial, sans-serif"
     styling += f"\n- Use font-family: {font}"

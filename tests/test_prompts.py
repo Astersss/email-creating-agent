@@ -91,7 +91,7 @@ def test_build_user_prompt_uses_neutral_palette_when_no_color():
     assert "#0066CC" in prompt
 
 
-def test_build_user_prompt_includes_logo_url_when_set():
+def test_build_user_prompt_includes_logo_placeholder_when_set():
     brand_with_logo = BrandConfig(
         id="test", name="Test", logo_url="https://example.com/logo.png"
     )
@@ -102,7 +102,8 @@ def test_build_user_prompt_includes_logo_url_when_set():
         target_customers="all",
         goal="sell",
     )
-    assert "https://example.com/logo.png" in prompt
+    assert "{{LOGO_URL}}" in prompt
+    assert "https://example.com/logo.png" not in prompt
 
 
 def test_build_user_prompt_no_logo_section_when_logo_absent():
@@ -130,7 +131,8 @@ def test_build_user_prompt_color_and_logo_both_present():
         goal="sell",
     )
     assert "#FF0000" in prompt
-    assert "https://example.com/logo.png" in prompt
+    assert "{{LOGO_URL}}" in prompt
+    assert "https://example.com/logo.png" not in prompt
     assert "#0066CC" not in prompt
     assert "mj-image" in prompt
 

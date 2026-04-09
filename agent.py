@@ -152,4 +152,7 @@ class EmailAgent:
         else:
             package["mjml"] = strip_image_marker(package["mjml"])
 
+        if brand.logo_url:
+            package["mjml"] = package["mjml"].replace("{{LOGO_URL}}", brand.logo_url)
+
         return package
