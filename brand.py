@@ -17,6 +17,7 @@ class BrandConfig:
     brand_voice: str | None = None
     website_url: str | None = None
     tagline: str | None = None
+    logo_url: str | None = None
 
 
 _BRAND_FIELDS = {f.name for f in dataclasses.fields(BrandConfig)}
