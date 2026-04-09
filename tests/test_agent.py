@@ -1,8 +1,10 @@
 import json
 import pytest
 from unittest.mock import MagicMock, patch
+from brand import BrandConfig
 from agent import EmailAgent
 
+STARBUCKS = BrandConfig(id="starbucks", name="Starbucks", primary_color="#00704A")
 
 VALID_PACKAGE = {
     "subject_lines": ["Try our new drink", "New arrival at Starbucks", "Sip something new"],
@@ -57,15 +59,39 @@ def test_generate_calls_api_and_returns_parsed_package(mock_post):
 
     agent = EmailAgent(api_key="test-key")
     result = agent.generate(
+        brand=STARBUCKS,
         email_type="promotional",
         email_classification="B2C",
         target_customers="coffee lovers",
         goal="sell more coffee",
+        model="MiniMax-Text-01",
     )
     assert result == VALID_PACKAGE
     mock_post.assert_called_once()
     call_kwargs = mock_post.call_args.kwargs
     assert call_kwargs["json"]["model"] == "MiniMax-Text-01"
+
+
+@patch("agent.httpx.post")
+def test_generate_uses_provided_model(mock_post):
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "choices": [{"message": {"content": json.dumps(VALID_PACKAGE)}}]
+    }
+    mock_post.return_value = mock_response
+
+    agent = EmailAgent(api_key="test-key")
+    agent.generate(
+        brand=STARBUCKS,
+        email_type="promo",
+        email_classification="B2C",
+        target_customers="all",
+        goal="sell",
+        model="MiniMax-M1",
+    )
+    call_kwargs = mock_post.call_args.kwargs
+    assert call_kwargs["json"]["model"] == "MiniMax-M1"
 
 
 @patch("agent.httpx.post")
@@ -78,8 +104,10 @@ def test_generate_raises_on_non_200(mock_post):
     agent = EmailAgent(api_key="test-key")
     with pytest.raises(RuntimeError, match="MiniMax API error 429"):
         agent.generate(
+            brand=STARBUCKS,
             email_type="promo",
             email_classification="B2C",
             target_customers="all",
             goal="sell",
+            model="MiniMax-Text-01",
         )

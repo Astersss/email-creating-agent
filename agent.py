@@ -1,10 +1,9 @@
 import json
 import httpx
+from brand import BrandConfig
 from prompts import SYSTEM_PROMPT, build_user_prompt
 
-
 MINIMAX_API_URL = "https://api.minimaxi.chat/v1/text/chatcompletion_v2"
-MINIMAX_MODEL = "MiniMax-Text-01"
 REQUIRED_KEYS = {"subject_lines", "preheader", "mjml", "rationale"}
 
 
@@ -35,12 +34,15 @@ class EmailAgent:
 
     def generate(
         self,
+        brand: BrandConfig,
         email_type: str,
         email_classification: str,
         target_customers: str,
         goal: str,
+        model: str,
     ) -> dict:
         user_prompt = build_user_prompt(
+            brand=brand,
             email_type=email_type,
             email_classification=email_classification,
             target_customers=target_customers,
@@ -48,7 +50,7 @@ class EmailAgent:
         )
 
         payload = {
-            "model": MINIMAX_MODEL,
+            "model": model,
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_prompt},
