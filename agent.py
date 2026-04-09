@@ -147,8 +147,13 @@ class EmailAgent:
             if image_prompt:
                 image_url = self.generate_mood_image(image_prompt)
 
-        if image_url:
+        marker_present = "{{IMAGE_URL}}" in package["mjml"]
+
+        if image_url and marker_present:
             package["mjml"] = patch_image_url(package["mjml"], image_url)
+        elif image_url and not marker_present:
+            package["_warning"] = "Model did not include {{IMAGE_URL}} marker — product image was not inserted."
+            package["mjml"] = strip_image_marker(package["mjml"])
         else:
             package["mjml"] = strip_image_marker(package["mjml"])
 

@@ -10,11 +10,12 @@ MJML RULES:
 - Buttons must use the brand website URL as href, or "#" if none provided
 - Do NOT use any real image URLs in src attributes — never use external URLs, placeholder services, or Wikipedia images
 
-IMAGE RULES:
-- For mood/seasonal/celebratory/re-engagement/loyalty emails: include exactly one <mj-image src="{{IMAGE_URL}}" alt="..." width="600px" align="center" /> in the MJML where an image would appear, AND include an "image_prompt" field in your JSON output describing the image to generate (max 200 chars, atmospheric/mood-focused, no brand logos or real products)
-- For product/promotional/sale/launch emails: include exactly one <mj-image src="{{IMAGE_URL}}" alt="..." width="600px" align="center" /> where the product image should appear, but do NOT include "image_prompt" (a real product photo will be substituted)
-- For transactional emails: include no mj-image at all, no {{IMAGE_URL}}, no image_prompt
-- If logo is provided: always include it as the first mj-image in the email using src="{{LOGO_URL}}" exactly as written
+IMAGE RULES (CRITICAL — follow exactly):
+- For product/promotional/sale/launch/abandoned cart emails: you MUST include exactly one <mj-image src="{{IMAGE_URL}}" alt="..." width="600px" align="center" /> in the MJML body to show the product. This is REQUIRED. Place it prominently after the headline. Do NOT skip this.
+- For mood/seasonal/celebratory/re-engagement/loyalty/welcome/event emails: you MUST include exactly one <mj-image src="{{IMAGE_URL}}" alt="..." width="600px" align="center" /> AND include an "image_prompt" field in your JSON output (max 200 chars, atmospheric/mood-focused, no brand logos or real products)
+- For transactional emails only: no mj-image, no {{IMAGE_URL}}, no image_prompt
+- The literal string {{IMAGE_URL}} must appear as the src value — do not replace it with anything else
+- If logo is provided: always include it as the first mj-image using src="{{LOGO_URL}}" exactly as written
 
 EMAIL BEST PRACTICES:
 - Single, clear call-to-action (CTA)

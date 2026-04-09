@@ -103,6 +103,8 @@ def print_results(package: dict, mjml_path: Path, package_path: Path) -> None:
     for i, line in enumerate(package["subject_lines"], 1):
         print(f"  {i}. {line}")
     print(f"\n=== PREHEADER ===\n  {package['preheader']}")
+    if "_warning" in package:
+        print(f"\n⚠️  WARNING: {package['_warning']}")
     print(f"\n=== RATIONALE ===\n  {package['rationale']}")
     print("\n=== OUTPUT FILES ===")
     print(f"  MJML:    {mjml_path}")
