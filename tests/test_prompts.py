@@ -151,3 +151,50 @@ def test_build_user_prompt_logo_without_color_uses_neutral_palette():
 
 def test_system_prompt_does_not_restrict_brand_styling():
     assert "no brand colors" not in SYSTEM_PROMPT
+
+
+def test_build_user_prompt_includes_secondary_color():
+    brand = BrandConfig(id="sb", name="Starbucks", primary_color="#00704A", secondary_color="#CBA258")
+    prompt = build_user_prompt(brand=brand, email_type="promo", email_classification="B2C",
+                               target_customers="all", goal="sell")
+    assert "#CBA258" in prompt
+
+
+def test_build_user_prompt_includes_brand_voice():
+    brand = BrandConfig(id="sb", name="Starbucks", brand_voice="warm, welcoming")
+    prompt = build_user_prompt(brand=brand, email_type="promo", email_classification="B2C",
+                               target_customers="all", goal="sell")
+    assert "warm, welcoming" in prompt
+
+
+def test_build_user_prompt_includes_website_url():
+    brand = BrandConfig(id="sb", name="Starbucks", website_url="https://www.starbucks.com")
+    prompt = build_user_prompt(brand=brand, email_type="promo", email_classification="B2C",
+                               target_customers="all", goal="sell")
+    assert "https://www.starbucks.com" in prompt
+
+
+def test_build_user_prompt_includes_tagline():
+    brand = BrandConfig(id="sb", name="Starbucks", tagline="It starts with you")
+    prompt = build_user_prompt(brand=brand, email_type="promo", email_classification="B2C",
+                               target_customers="all", goal="sell")
+    assert "It starts with you" in prompt
+
+
+def test_build_user_prompt_includes_font_family():
+    brand = BrandConfig(id="sb", name="Starbucks", font_family="Sodo Sans, Arial, sans-serif")
+    prompt = build_user_prompt(brand=brand, email_type="promo", email_classification="B2C",
+                               target_customers="all", goal="sell")
+    assert "Sodo Sans, Arial, sans-serif" in prompt
+
+
+def test_system_prompt_requires_image_url_marker():
+    assert "{{IMAGE_URL}}" in SYSTEM_PROMPT
+
+
+def test_system_prompt_requires_image_prompt_field():
+    assert "image_prompt" in SYSTEM_PROMPT
+
+
+def test_system_prompt_forbids_external_image_urls():
+    assert "never" in SYSTEM_PROMPT.lower() or "do not" in SYSTEM_PROMPT.lower()
