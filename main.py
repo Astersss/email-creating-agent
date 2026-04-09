@@ -42,18 +42,41 @@ def _enter_custom_brand() -> BrandConfig:
 def prompt_campaign_inputs() -> dict:
     print()
     required_fields = [
-        ("email_type", "Email type (e.g. promotional, announcement)"),
-        ("email_classification", "Email classification (e.g. B2C, B2B)"),
-        ("target_customers", "Target customers"),
-        ("goal", "Goal"),
+        (
+            "email_type",
+            "Email type",
+            "What kind of email is this?",
+            "e.g. promotional, announcement, seasonal, re-engagement, loyalty reward",
+        ),
+        (
+            "email_classification",
+            "Email classification",
+            "Who is the relationship between sender and recipient?",
+            "e.g. B2C (brand to consumer), B2B (brand to business), loyalty members only",
+        ),
+        (
+            "target_customers",
+            "Target customers",
+            "Describe the audience receiving this email — their demographics, interests, or relationship with the brand.",
+            "e.g. Starbucks loyalty members aged 18-35, coffee and tea enthusiasts",
+        ),
+        (
+            "goal",
+            "Campaign goal",
+            "What do you want recipients to do after reading this email?",
+            "e.g. Drive trial purchases of a new seasonal drink, increase app downloads, boost weekend foot traffic",
+        ),
     ]
     inputs = {}
-    for key, label in required_fields:
+    for key, label, description, example in required_fields:
+        print(f"\n{label}")
+        print(f"  {description}")
+        print(f"  Example: {example}")
         while True:
-            value = input(f"{label}: ").strip()
+            value = input(f"  > ").strip()
             if value:
                 break
-            print(f"{label} cannot be empty.")
+            print(f"  {label} cannot be empty.")
         inputs[key] = value
     return inputs
 
