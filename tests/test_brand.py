@@ -66,3 +66,65 @@ def test_load_model_custom(tmp_path):
     config_file = tmp_path / "config.json"
     config_file.write_text(json.dumps({"model": "MiniMax-M1"}), encoding="utf-8")
     assert load_model(path=config_file) == "MiniMax-M1"
+
+
+def test_brand_config_new_fields_default_to_none():
+    brand = BrandConfig(id="test", name="Test Brand")
+    assert brand.secondary_color is None
+    assert brand.product_image_url is None
+    assert brand.font_family is None
+    assert brand.brand_voice is None
+    assert brand.website_url is None
+    assert brand.tagline is None
+
+
+def test_brand_config_new_fields_accepted():
+    brand = BrandConfig(
+        id="sb", name="Starbucks",
+        secondary_color="#CBA258",
+        product_image_url="https://example.com/drink.jpg",
+        font_family="Sodo Sans, Arial, sans-serif",
+        brand_voice="warm, welcoming",
+        website_url="https://www.starbucks.com",
+        tagline="It starts with you",
+    )
+    assert brand.secondary_color == "#CBA258"
+    assert brand.product_image_url == "https://example.com/drink.jpg"
+    assert brand.font_family == "Sodo Sans, Arial, sans-serif"
+    assert brand.brand_voice == "warm, welcoming"
+    assert brand.website_url == "https://www.starbucks.com"
+    assert brand.tagline == "It starts with you"
+
+
+def test_load_brands_ignores_unknown_fields(tmp_path):
+    brands_file = tmp_path / "brands.json"
+    brands_file.write_text(
+        json.dumps({"brands": [{"id": "x", "name": "X", "unknown_field": "ignored"}]}),
+        encoding="utf-8",
+    )
+    brands = load_brands(path=brands_file)
+    assert brands[0].id == "x"
+
+
+def test_load_brands_loads_new_fields(tmp_path):
+    brands_file = tmp_path / "brands.json"
+    brands_file.write_text(
+        json.dumps({"brands": [{
+            "id": "sb", "name": "Starbucks",
+            "primary_color": "#00704A",
+            "logo_url": None,
+            "secondary_color": "#CBA258",
+            "product_image_url": "https://example.com/drink.jpg",
+            "font_family": "Sodo Sans, Arial, sans-serif",
+            "brand_voice": "warm, welcoming",
+            "website_url": "https://www.starbucks.com",
+            "tagline": "It starts with you",
+        }]}),
+        encoding="utf-8",
+    )
+    brands = load_brands(path=brands_file)
+    assert brands[0].secondary_color == "#CBA258"
+    assert brands[0].product_image_url == "https://example.com/drink.jpg"
+    assert brands[0].brand_voice == "warm, welcoming"
+    assert brands[0].website_url == "https://www.starbucks.com"
+    assert brands[0].tagline == "It starts with you"
