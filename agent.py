@@ -39,6 +39,7 @@ def strip_image_marker(mjml: str) -> str:
 
 
 MINIMAX_API_URL = "https://api.minimaxi.chat/v1/text/chatcompletion_v2"
+MINIMAX_IMAGE_API_URL = "https://api.minimax.io/v1/image_generation"
 REQUIRED_KEYS = {"subject_lines", "preheader", "mjml", "rationale"}
 
 
@@ -66,6 +67,21 @@ class EmailAgent:
             raise ValueError("subject_lines must contain at least one entry")
 
         return data
+
+    def generate_mood_image(self, image_prompt: str) -> str | None:
+        try:
+            response = httpx.post(
+                MINIMAX_IMAGE_API_URL,
+                json={"model": "image-01", "prompt": image_prompt, "response_format": "url", "n": 1},
+                headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
+                timeout=60.0,
+            )
+            if response.status_code != 200:
+                return None
+            urls = response.json().get("data", {}).get("image_urls", [])
+            return urls[0] if urls else None
+        except Exception:
+            return None
 
     def generate(
         self,

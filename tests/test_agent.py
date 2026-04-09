@@ -178,3 +178,58 @@ def test_strip_image_marker_removes_mj_image_tag():
 def test_strip_image_marker_no_marker_returns_unchanged():
     result = strip_image_marker(MJML_NO_MARKER)
     assert result == MJML_NO_MARKER
+
+
+@patch("agent.httpx.post")
+def test_generate_mood_image_returns_url_on_success(mock_post):
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "data": {"image_urls": ["https://cdn.minimax.io/generated/abc.jpg"]},
+        "base_resp": {"status_code": 0, "status_msg": "success"},
+    }
+    mock_post.return_value = mock_response
+
+    agent = EmailAgent(api_key="test-key")
+    url = agent.generate_mood_image("A cozy autumn coffee scene")
+    assert url == "https://cdn.minimax.io/generated/abc.jpg"
+    call_kwargs = mock_post.call_args.kwargs
+    assert call_kwargs["json"]["model"] == "image-01"
+    assert call_kwargs["json"]["prompt"] == "A cozy autumn coffee scene"
+
+
+@patch("agent.httpx.post")
+def test_generate_mood_image_returns_none_on_api_error(mock_post):
+    mock_response = MagicMock()
+    mock_response.status_code = 500
+    mock_response.text = "internal error"
+    mock_post.return_value = mock_response
+
+    agent = EmailAgent(api_key="test-key")
+    url = agent.generate_mood_image("A cozy autumn coffee scene")
+    assert url is None
+
+
+@patch("agent.httpx.post")
+def test_generate_mood_image_returns_none_on_content_safety_block(mock_post):
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "data": {"image_urls": []},
+        "metadata": {"success_count": 0, "failed_count": 1},
+        "base_resp": {"status_code": 0, "status_msg": "success"},
+    }
+    mock_post.return_value = mock_response
+
+    agent = EmailAgent(api_key="test-key")
+    url = agent.generate_mood_image("A cozy autumn coffee scene")
+    assert url is None
+
+
+@patch("agent.httpx.post")
+def test_generate_mood_image_returns_none_on_exception(mock_post):
+    mock_post.side_effect = Exception("network error")
+
+    agent = EmailAgent(api_key="test-key")
+    url = agent.generate_mood_image("prompt")
+    assert url is None
