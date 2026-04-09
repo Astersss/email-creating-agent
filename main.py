@@ -81,11 +81,19 @@ def prompt_campaign_inputs() -> dict:
     return inputs
 
 
+_TINY_PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+
+
+def _strip_base64_for_preview(mjml: str) -> str:
+    import re
+    return re.sub(r'data:[^;]+;base64,[A-Za-z0-9+/=]+', _TINY_PNG, mjml)
+
+
 def save_output(brand_id: str, package: dict) -> tuple[Path, Path]:
     OUTPUT_DIR.mkdir(exist_ok=True)
     mjml_path = OUTPUT_DIR / f"{brand_id}_email.mjml"
     package_path = OUTPUT_DIR / f"{brand_id}_email_package.json"
-    mjml_path.write_text(package["mjml"], encoding="utf-8")
+    mjml_path.write_text(_strip_base64_for_preview(package["mjml"]), encoding="utf-8")
     package_path.write_text(json.dumps(package, indent=2, ensure_ascii=False), encoding="utf-8")
     return mjml_path, package_path
 
