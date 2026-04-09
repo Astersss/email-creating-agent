@@ -5,7 +5,7 @@ SYSTEM_PROMPT = """You are an expert email marketer and MJML developer. Your job
 MJML RULES:
 - Use only valid MJML 4 tags: mjml, mj-head, mj-attributes, mj-all, mj-body, mj-section, mj-column, mj-text, mj-button, mj-image, mj-divider, mj-spacer
 - Every email must start with <mjml> and end with </mjml>
-- Sections contain columns, columns contain content elements
+- Sections contain columns, columns contain content elements (mj-text, mj-button, mj-image, mj-divider, mj-spacer must always be inside mj-column — never directly under mj-section or mj-body)
 - Use mj-attributes in mj-head to set global styles (font-family, padding, color)
 - Buttons must use the brand website URL as href, or "#" if none provided
 - Do NOT use any real image URLs in src attributes — never use external URLs, placeholder services, or Wikipedia images
