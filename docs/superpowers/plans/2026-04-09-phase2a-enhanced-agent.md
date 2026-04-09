@@ -138,7 +138,7 @@ def test_load_model_custom(tmp_path):
 - [ ] **Step 4: Run tests to verify they fail**
 
 ```bash
-cd /Users/asun/Documents/mithra && .venv/bin/pytest tests/test_brand.py -v
+cd /Users/asun/Documents/email-creating-agent && .venv/bin/pytest tests/test_brand.py -v
 ```
 
 Expected: FAIL with `ModuleNotFoundError: No module named 'brand'`
@@ -177,7 +177,7 @@ def load_model(path: Path = CONFIG_FILE) -> str:
 - [ ] **Step 6: Run tests to verify they pass**
 
 ```bash
-cd /Users/asun/Documents/mithra && .venv/bin/pytest tests/test_brand.py -v
+cd /Users/asun/Documents/email-creating-agent && .venv/bin/pytest tests/test_brand.py -v
 ```
 
 Expected: all 6 tests PASS
@@ -185,7 +185,7 @@ Expected: all 6 tests PASS
 - [ ] **Step 7: Commit**
 
 ```bash
-cd /Users/asun/Documents/mithra && git add brands.json config.json brand.py tests/test_brand.py && git commit -m "feat: add brand config files and BrandConfig module"
+cd /Users/asun/Documents/email-creating-agent && git add brands.json config.json brand.py tests/test_brand.py && git commit -m "feat: add brand config files and BrandConfig module"
 ```
 
 ---
@@ -390,7 +390,7 @@ def test_build_user_prompt_no_logo_section_when_logo_absent():
 - [ ] **Step 3: Run tests to verify they pass**
 
 ```bash
-cd /Users/asun/Documents/mithra && .venv/bin/pytest tests/test_prompts.py -v
+cd /Users/asun/Documents/email-creating-agent && .venv/bin/pytest tests/test_prompts.py -v
 ```
 
 Expected: all 10 tests PASS
@@ -398,7 +398,7 @@ Expected: all 10 tests PASS
 - [ ] **Step 4: Commit**
 
 ```bash
-cd /Users/asun/Documents/mithra && git add prompts.py tests/test_prompts.py && git commit -m "feat: brand-aware prompts with dynamic color and logo injection"
+cd /Users/asun/Documents/email-creating-agent && git add prompts.py tests/test_prompts.py && git commit -m "feat: brand-aware prompts with dynamic color and logo injection"
 ```
 
 ---
@@ -620,7 +620,7 @@ def test_generate_raises_on_non_200(mock_post):
 - [ ] **Step 3: Run tests to verify they pass**
 
 ```bash
-cd /Users/asun/Documents/mithra && .venv/bin/pytest tests/test_agent.py -v
+cd /Users/asun/Documents/email-creating-agent && .venv/bin/pytest tests/test_agent.py -v
 ```
 
 Expected: all 8 tests PASS
@@ -628,7 +628,7 @@ Expected: all 8 tests PASS
 - [ ] **Step 4: Run full test suite**
 
 ```bash
-cd /Users/asun/Documents/mithra && .venv/bin/pytest tests/ -v
+cd /Users/asun/Documents/email-creating-agent && .venv/bin/pytest tests/ -v
 ```
 
 Expected: all tests PASS (test_brand + test_prompts + test_agent)
@@ -636,7 +636,7 @@ Expected: all tests PASS (test_brand + test_prompts + test_agent)
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /Users/asun/Documents/mithra && git add agent.py tests/test_agent.py && git commit -m "feat: agent accepts brand and model params, removes hardcoded model"
+cd /Users/asun/Documents/email-creating-agent && git add agent.py tests/test_agent.py && git commit -m "feat: agent accepts brand and model params, removes hardcoded model"
 ```
 
 ---
@@ -701,7 +701,7 @@ def test_save_output_uses_brand_id_in_filename(tmp_path):
 - [ ] **Step 2: Run tests to verify they fail**
 
 ```bash
-cd /Users/asun/Documents/mithra && .venv/bin/pytest tests/test_main.py -v
+cd /Users/asun/Documents/email-creating-agent && .venv/bin/pytest tests/test_main.py -v
 ```
 
 Expected: FAIL — `make_brand_id` and `save_output` not yet in `main.py`
@@ -841,7 +841,7 @@ output/*.json
 - [ ] **Step 5: Run tests to verify they pass**
 
 ```bash
-cd /Users/asun/Documents/mithra && .venv/bin/pytest tests/test_main.py -v
+cd /Users/asun/Documents/email-creating-agent && .venv/bin/pytest tests/test_main.py -v
 ```
 
 Expected: all 6 tests PASS
@@ -849,7 +849,7 @@ Expected: all 6 tests PASS
 - [ ] **Step 6: Run full test suite**
 
 ```bash
-cd /Users/asun/Documents/mithra && .venv/bin/pytest tests/ -v
+cd /Users/asun/Documents/email-creating-agent && .venv/bin/pytest tests/ -v
 ```
 
 Expected: all tests PASS
@@ -857,7 +857,7 @@ Expected: all tests PASS
 - [ ] **Step 7: Run the interactive CLI to verify end-to-end**
 
 ```bash
-cd /Users/asun/Documents/mithra && .venv/bin/python main.py
+cd /Users/asun/Documents/email-creating-agent && .venv/bin/python main.py
 ```
 
 When prompted:
@@ -872,5 +872,5 @@ Expected: subject lines, preheader, rationale printed, `output/starbucks_email.m
 - [ ] **Step 8: Commit**
 
 ```bash
-cd /Users/asun/Documents/mithra && git add main.py tests/test_main.py .gitignore && git commit -m "feat: interactive CLI with brand selection and per-brand output files"
+cd /Users/asun/Documents/email-creating-agent && git add main.py tests/test_main.py .gitignore && git commit -m "feat: interactive CLI with brand selection and per-brand output files"
 ```

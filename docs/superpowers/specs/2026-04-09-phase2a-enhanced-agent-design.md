@@ -1,6 +1,6 @@
 # Phase 2A: Enhanced Agent Design Spec
 **Date:** 2026-04-09
-**Project:** Mithra — AI Email Agent
+**Project:** Email Creating Agent
 
 ---
 

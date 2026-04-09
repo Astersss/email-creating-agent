@@ -1,6 +1,6 @@
 # Email Agent Design Spec
 **Date:** 2026-04-09
-**Project:** Mithra — AI Email Agent
+**Project:** Email Creating Agent
 
 ---
 
@@ -78,7 +78,7 @@ Single-prompt agent — one LLM call with a carefully engineered system prompt.
 ## File Structure
 
 ```
-mithra/
+email-creating-agent/
 ├── main.py              # Entry point — interactive CLI, runs agent, saves output
 ├── agent.py             # EmailAgent class — prompt construction, API call, response parsing
 ├── prompts.py           # System prompt and user prompt templates

@@ -42,16 +42,16 @@ pytest==8.3.5
 - [ ] **Step 2: Create output directory placeholder**
 
 ```bash
-mkdir -p /Users/asun/Documents/mithra/output
-touch /Users/asun/Documents/mithra/output/.gitkeep
-mkdir -p /Users/asun/Documents/mithra/tests
-touch /Users/asun/Documents/mithra/tests/__init__.py
+mkdir -p /Users/asun/Documents/email-creating-agent/output
+touch /Users/asun/Documents/email-creating-agent/output/.gitkeep
+mkdir -p /Users/asun/Documents/email-creating-agent/tests
+touch /Users/asun/Documents/email-creating-agent/tests/__init__.py
 ```
 
 - [ ] **Step 3: Install dependencies**
 
 ```bash
-cd /Users/asun/Documents/mithra && .venv/bin/pip install httpx==0.27.0 pytest==8.3.5
+cd /Users/asun/Documents/email-creating-agent && .venv/bin/pip install httpx==0.27.0 pytest==8.3.5
 ```
 
 Expected output: `Successfully installed httpx-0.27.0 pytest-8.3.5` (versions may vary slightly)
@@ -59,7 +59,7 @@ Expected output: `Successfully installed httpx-0.27.0 pytest-8.3.5` (versions ma
 - [ ] **Step 4: Verify install**
 
 ```bash
-cd /Users/asun/Documents/mithra && .venv/bin/python -c "import httpx; import pytest; print('OK')"
+cd /Users/asun/Documents/email-creating-agent && .venv/bin/python -c "import httpx; import pytest; print('OK')"
 ```
 
 Expected: `OK`
@@ -67,7 +67,7 @@ Expected: `OK`
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /Users/asun/Documents/mithra && git init && git add requirements.txt output/.gitkeep tests/__init__.py && git commit -m "chore: project setup with dependencies"
+cd /Users/asun/Documents/email-creating-agent && git init && git add requirements.txt output/.gitkeep tests/__init__.py && git commit -m "chore: project setup with dependencies"
 ```
 
 ---
@@ -126,7 +126,7 @@ def test_build_user_prompt_returns_string():
 - [ ] **Step 2: Run tests to verify they fail**
 
 ```bash
-cd /Users/asun/Documents/mithra && .venv/bin/pytest tests/test_prompts.py -v
+cd /Users/asun/Documents/email-creating-agent && .venv/bin/pytest tests/test_prompts.py -v
 ```
 
 Expected: FAIL with `ModuleNotFoundError: No module named 'prompts'`
@@ -182,7 +182,7 @@ Return a single JSON object with keys: subject_lines (array of 3 strings), prehe
 - [ ] **Step 4: Run tests to verify they pass**
 
 ```bash
-cd /Users/asun/Documents/mithra && .venv/bin/pytest tests/test_prompts.py -v
+cd /Users/asun/Documents/email-creating-agent && .venv/bin/pytest tests/test_prompts.py -v
 ```
 
 Expected: all 5 tests PASS
@@ -190,7 +190,7 @@ Expected: all 5 tests PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /Users/asun/Documents/mithra && git add prompts.py tests/test_prompts.py && git commit -m "feat: add prompts module with system prompt and user prompt builder"
+cd /Users/asun/Documents/email-creating-agent && git add prompts.py tests/test_prompts.py && git commit -m "feat: add prompts module with system prompt and user prompt builder"
 ```
 
 ---
@@ -257,7 +257,7 @@ def test_agent_init_stores_api_key():
 - [ ] **Step 2: Run tests to verify they fail**
 
 ```bash
-cd /Users/asun/Documents/mithra && .venv/bin/pytest tests/test_agent.py -v
+cd /Users/asun/Documents/email-creating-agent && .venv/bin/pytest tests/test_agent.py -v
 ```
 
 Expected: FAIL with `ModuleNotFoundError: No module named 'agent'`
@@ -343,7 +343,7 @@ class EmailAgent:
 - [ ] **Step 4: Run tests to verify they pass**
 
 ```bash
-cd /Users/asun/Documents/mithra && .venv/bin/pytest tests/test_agent.py -v
+cd /Users/asun/Documents/email-creating-agent && .venv/bin/pytest tests/test_agent.py -v
 ```
 
 Expected: all 5 tests PASS
@@ -351,7 +351,7 @@ Expected: all 5 tests PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /Users/asun/Documents/mithra && git add agent.py tests/test_agent.py && git commit -m "feat: add EmailAgent with MiniMax API call and response parsing"
+cd /Users/asun/Documents/email-creating-agent && git add agent.py tests/test_agent.py && git commit -m "feat: add EmailAgent with MiniMax API call and response parsing"
 ```
 
 ---
@@ -420,7 +420,7 @@ if __name__ == "__main__":
 - [ ] **Step 2: Set the API key and run the script**
 
 ```bash
-cd /Users/asun/Documents/mithra && MINIMAX_API_KEY=sk-api-A3aHSpnsft2LIJcji5z45FFC4Qx3S0Ed8RV7LuTJSJC1XH9XcWN1Adw6HjJS2mrljHSQqyowBR1Hph9g65simY8d_5ypq6C7ka8_6dolS8iDR5pBS3AdtCI .venv/bin/python main.py
+cd /Users/asun/Documents/email-creating-agent && MINIMAX_API_KEY=sk-api-A3aHSpnsft2LIJcji5z45FFC4Qx3S0Ed8RV7LuTJSJC1XH9XcWN1Adw6HjJS2mrljHSQqyowBR1Hph9g65simY8d_5ypq6C7ka8_6dolS8iDR5pBS3AdtCI .venv/bin/python main.py
 ```
 
 Expected output:
@@ -448,7 +448,7 @@ Audience: Starbucks loyalty members aged 18-35, coffee and tea enthusiasts
 - [ ] **Step 3: Verify output files exist and MJML is valid**
 
 ```bash
-cd /Users/asun/Documents/mithra && head -5 output/email.mjml && echo "---" && cat output/email_package.json | .venv/bin/python -c "import json,sys; d=json.load(sys.stdin); print('Keys:', list(d.keys())); print('Subject lines:', d['subject_lines'])"
+cd /Users/asun/Documents/email-creating-agent && head -5 output/email.mjml && echo "---" && cat output/email_package.json | .venv/bin/python -c "import json,sys; d=json.load(sys.stdin); print('Keys:', list(d.keys())); print('Subject lines:', d['subject_lines'])"
 ```
 
 Expected: MJML starts with `<mjml>`, package has all 4 keys, 3 subject lines printed.
@@ -456,7 +456,7 @@ Expected: MJML starts with `<mjml>`, package has all 4 keys, 3 subject lines pri
 - [ ] **Step 4: Run full test suite to confirm nothing is broken**
 
 ```bash
-cd /Users/asun/Documents/mithra && .venv/bin/pytest tests/ -v
+cd /Users/asun/Documents/email-creating-agent && .venv/bin/pytest tests/ -v
 ```
 
 Expected: all tests PASS
@@ -464,5 +464,5 @@ Expected: all tests PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /Users/asun/Documents/mithra && git add main.py output/.gitkeep && git commit -m "feat: add main script with hardcoded Starbucks promo inputs"
+cd /Users/asun/Documents/email-creating-agent && git add main.py output/.gitkeep && git commit -m "feat: add main script with hardcoded Starbucks promo inputs"
 ```
