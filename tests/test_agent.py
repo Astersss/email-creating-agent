@@ -95,6 +95,29 @@ def test_generate_uses_provided_model(mock_post):
 
 
 @patch("agent.httpx.post")
+def test_generate_embeds_brand_in_prompt_payload(mock_post):
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "choices": [{"message": {"content": json.dumps(VALID_PACKAGE)}}]
+    }
+    mock_post.return_value = mock_response
+
+    agent = EmailAgent(api_key="test-key")
+    agent.generate(
+        brand=STARBUCKS,
+        email_type="promo",
+        email_classification="B2C",
+        target_customers="all",
+        goal="sell",
+        model="MiniMax-Text-01",
+    )
+    user_message_content = mock_post.call_args.kwargs["json"]["messages"][1]["content"]
+    assert "Starbucks" in user_message_content
+    assert "#00704A" in user_message_content
+
+
+@patch("agent.httpx.post")
 def test_generate_raises_on_non_200(mock_post):
     mock_response = MagicMock()
     mock_response.status_code = 429
