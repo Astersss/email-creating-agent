@@ -1,0 +1,71 @@
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-all font-family="Sodo Sans, Arial, sans-serif" />
+      <mj-text font-size="16px" color="#333333" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#FFFFFF">
+    <!-- Hero Section -->
+    <mj-section background-color="#00704A" padding="60px 20px">
+      <mj-column>
+        <mj-text font-size="32px" color="#FFFFFF" font-weight="bold" align="center" padding="0 0 15px 0">
+          It's been a while, friend
+        </mj-text>
+        <mj-text font-size="16px" color="#FFFFFF" align="center" padding="0">
+          We've saved your usual spot. And crafted something new you'll want to try.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Gold Accent Band -->
+    <mj-section background-color="#FFFFFF" padding="0">
+      <mj-column>
+        <mj-divider border-color="#CBA258" border-width="3px" width="80px" />
+      </mj-column>
+    </mj-section>
+
+    <!-- Atmospheric Image Section -->
+    <mj-section background-color="#FFFFFF" padding="30px 20px">
+      <mj-column>
+        <mj-image src="http://hailuo-image-algeng-data-us.oss-us-east-1.aliyuncs.com/image_inference_output%2Ftalkie%2Fprod%2Fimg%2F2026-04-09%2F74e3c7c5-95e9-498f-88a9-58dd02b0c6d6_aigc.jpeg?Expires=1775822904&OSSAccessKeyId=LTAI5tRDTcyEYLLuBEpJRwCi&Signature=aBeodRx1QVzW0kZGX1cK%2FL4Ziao%3D" alt="Cozy coffee moment with warm seasonal drink" width="500px" align="center" />
+      </mj-column>
+    </mj-section>
+
+    <!-- Message Section -->
+    <mj-section background-color="#FFFFFF" padding="20px 20px 30px">
+      <mj-column>
+        <mj-text font-size="28px" color="#00704A" font-weight="bold" align="center" padding="0 0 15px 0">
+          The season's best is here
+        </mj-text>
+        <mj-text font-size="16px" color="#333333" align="center" padding="0 0 25px 0">
+          Rich, warming, and made for moments like these. Come back and rediscover what you've been missing.
+        </mj-text>
+        <mj-button href="https://www.starbucks.com" background-color="#00704A" color="#FFFFFF" border-radius="30px" padding="15px 35px" font-size="16px" font-weight="bold" align="center">
+          Try It Now
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <!-- Accent Band -->
+    <mj-section background-color="#CBA258" padding="8px 20px">
+      <mj-column>
+        <mj-text font-size="14px" color="#FFFFFF" align="center" padding="0">
+          Your next favorite cup awaits
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section background-color="#FFFFFF" padding="30px 20px 40px">
+      <mj-column>
+        <mj-text font-size="12px" color="#999999" align="center" padding="0 0 5px 0">
+          Starbucks
+        </mj-text>
+        <mj-text font-size="12px" color="#999999" align="center" padding="0">
+          It starts with you
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

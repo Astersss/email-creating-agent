@@ -1,0 +1,66 @@
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-text font-family="Sodo Sans, Arial, sans-serif" font-size="16px" color="#333333" line-height="1.6" />
+      <mj-button font-family="Sodo Sans, Arial, sans-serif" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#FFFFFF">
+    <!-- Hero Section -->
+    <mj-section background-color="#00704A" padding="60px 20px">
+      <mj-column>
+        <mj-text align="center" color="#FFFFFF" font-size="32px" font-weight="bold" line-height="1.3">
+          Your Rewards Are Ready
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    
+    <!-- Product Image Section -->
+    <mj-section background-color="#FFFFFF" padding="30px 20px">
+      <mj-column>
+        
+      </mj-column>
+    </mj-section>
+    
+    <!-- Body Copy Section -->
+    <mj-section background-color="#FFFFFF" padding="10px 20px 20px 20px">
+      <mj-column>
+        <mj-text align="center">
+          As a valued Starbucks Rewards member, you've unlocked exclusive bonus points. This is our way of saying thanks for being part of our community.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    
+    <!-- Gold Accent Band -->
+    <mj-section background-color="#FFFFFF" padding="0 20px">
+      <mj-column>
+        <mj-divider border-color="#CBA258" border-width="3px" width="60px" align="center" />
+      </mj-column>
+    </mj-section>
+    
+    <!-- Accent Section with Value Proposition -->
+    <mj-section background-color="#00704A" padding="40px 20px">
+      <mj-column>
+        <mj-text align="center" color="#FFFFFF" font-size="28px" font-weight="bold">
+          100 Bonus Points
+        </mj-text>
+        <mj-text align="center" color="#FFFFFF" font-size="16px" padding="10px 0 25px 0">
+          Just for logging in today
+        </mj-text>
+        <mj-button href="https://www.starbucks.com" background-color="#CBA258" color="#FFFFFF" font-size="16px" font-weight="bold" padding="15px 40px" border-radius="50px">
+          Claim Your Points
+        </mj-button>
+      </mj-column>
+    </mj-section>
+    
+    <!-- Footer -->
+    <mj-section background-color="#FFFFFF" padding="30px 20px">
+      <mj-column>
+        <mj-text align="center" color="#999999" font-size="12px">
+          It starts with you<br/>
+          © 2024 Starbucks Coffee Company
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

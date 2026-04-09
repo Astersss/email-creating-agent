@@ -1,0 +1,64 @@
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-text font-family="Sodo Sans, Arial, sans-serif" font-size="16px" color="#333333" line-height="1.5" />
+      <mj-button font-family="Sodo Sans, Arial, sans-serif" font-size="16px" font-weight="bold" />
+      <mj-divider border-color="#CBA258" border-width="3px" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#FFFFFF">
+    <mj-section background-color="#FFFFFF" padding="20px">
+      <mj-column>
+        <mj-text align="center" font-size="20px" font-weight="bold" color="#00704A">STARBUCKS</mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#00704A" padding="50px 20px">
+      <mj-column>
+        <mj-text font-size="32px" font-weight="bold" color="#FFFFFF" align="center" padding-bottom="15px">Your Rewards Are Waiting</mj-text>
+        <mj-text font-size="16px" color="#FFFFFF" align="center">Download the Starbucks app and start earning Stars on every sip. Your free drinks and exclusive offers are just a tap away.</mj-text>
+        <mj-button href="https://www.starbucks.com" background-color="#FFFFFF" color="#00704A" border-radius="30px" padding="20px 40px" font-weight="bold">Download the App</mj-button>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#FFFFFF" padding="30px 20px">
+      <mj-column>
+        <mj-text align="center" font-size="20px" font-weight="bold" color="#00704A" padding-bottom="20px">Why Download?</mj-text>
+        <mj-text align="center">
+          ✦ Mobile Order &amp; Pay — skip the line<br/>
+          ✦ Earn Stars on every purchase<br/>
+          ✦ Free drink on your birthday<br/>
+          ✦ Unlock exclusive member offers
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#FFFFFF" padding="20px">
+      <mj-column>
+        
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#00704A" padding="40px 20px">
+      <mj-column>
+        <mj-text font-size="20px" font-weight="bold" color="#FFFFFF" align="center" padding-bottom="15px">Ready to Start Earning?</mj-text>
+        <mj-text font-size="16px" color="#FFFFFF" align="center" padding-bottom="20px">Join millions of members already enjoying the perks. Download free on iOS or Android.</mj-text>
+        <mj-button href="https://www.starbucks.com" background-color="#FFFFFF" color="#00704A" border-radius="30px" padding="15px 40px" font-weight="bold">Get the App Now</mj-button>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#FFFFFF" padding="0 20px">
+      <mj-column>
+        <mj-divider />
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#FFFFFF" padding="30px 20px">
+      <mj-column>
+        <mj-text font-size="18px" font-weight="bold" color="#00704A" align="center" padding-bottom="5px">It starts with you</mj-text>
+        <mj-text font-size="12px" color="#999999" align="center">You received this email as a Starbucks Rewards member. <a href="*|UNSUB|*" style="color:#00704A;text-decoration:none;">Unsubscribe</a></mj-text>
+        <mj-text font-size="11px" color="#999999" align="center" padding-top="10px">© 2024 Starbucks Coffee Company. All rights reserved.</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

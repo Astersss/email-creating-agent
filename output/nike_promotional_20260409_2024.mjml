@@ -1,0 +1,64 @@
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-all font-family="Avenir, Helvetica, Arial, sans-serif" />
+      <mj-text font-size="16px" color="#333333" line-height="1.5" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body>
+    <!-- Hero Section -->
+    <mj-section background-color="#000000" padding="60px 20px">
+      <mj-column>
+        <mj-text font-size="32px" color="#FFFFFF" font-weight="bold" align="center" padding="0 0 20px 0">
+          Drop Alert: Your Next Kicks Are Here
+        </mj-text>
+        <mj-text font-size="16px" color="#FFFFFF" align="center" padding="0 0 30px 0">
+          The freshest new arrivals just dropped. Engineered for comfort, built for the streets.
+        </mj-text>
+        <mj-button href="#" background-color="#000000" color="#FFFFFF" font-size="16px" padding="15px 50px" border-radius="4px" border="2px solid #FFFFFF">
+          Shop the Drop
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <!-- Product Image Section -->
+    <mj-section background-color="#FFFFFF" padding="40px 20px">
+      <mj-column>
+        
+        <mj-text font-size="20px" color="#000000" font-weight="bold" align="center" padding="0 0 10px 0">
+          Fresh. Light. Yours.
+        </mj-text>
+        <mj-text font-size="16px" color="#666666" align="center" padding="0 0 20px 0">
+          Be the first to lace up. Available in select sizes now.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- CTA Accent Section -->
+    <mj-section background-color="#F5F5F5" padding="40px 20px">
+      <mj-column>
+        <mj-text font-size="18px" color="#000000" font-weight="bold" align="center" padding="0 0 10px 0">
+          Limited Stock. Don't Sleep on It.
+        </mj-text>
+        <mj-text font-size="16px" color="#666666" align="center" padding="0 0 25px 0">
+          Once they're gone, they're gone. Secure your pair before the next wave drops.
+        </mj-text>
+        <mj-button href="#" background-color="#000000" color="#FFFFFF" font-size="16px" padding="15px 50px" border-radius="4px">
+          Get Yours Now
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section background-color="#FFFFFF" padding="30px 20px">
+      <mj-column>
+        <mj-text font-size="14px" color="#999999" align="center" padding="0 0 5px 0">
+          Nike
+        </mj-text>
+        <mj-text font-size="12px" color="#999999" align="center">
+          Just Do It.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

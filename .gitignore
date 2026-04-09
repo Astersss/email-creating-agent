@@ -7,6 +7,3 @@ __pycache__/
 # IDE
 .idea/
 
-# Runtime output (generated at runtime, not source)
-output/*.mjml
-output/*.json

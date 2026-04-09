@@ -1,0 +1,77 @@
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-text font-size="16px" font-family="Sodo Sans, Arial, sans-serif" color="#333333" />
+      <mj-button font-size="16px" font-family="Sodo Sans, Arial, sans-serif" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#FFFFFF">
+    <!-- Hero Section -->
+    <mj-section background-color="#00704A" padding="60px 20px">
+      <mj-column>
+        <mj-text font-size="32px" font-weight="bold" color="#FFFFFF" align="center" padding="0 0 10px 0">
+          It Starts With You
+        </mj-text>
+        <mj-text font-size="28px" font-weight="bold" color="#FFFFFF" align="center" padding="0 0 20px 0">
+          Meet Your New Seasonal Obsession
+        </mj-text>
+        <mj-text font-size="16px" color="#FFFFFF" align="center" padding="0 0 30px 0">
+          Our baristas crafted something special — a drink that captures the essence of the season in every sip.
+        </mj-text>
+        <mj-button background-color="#FFFFFF" color="#00704A" href="https://www.starbucks.com" font-weight="bold" border-radius="50px" padding="0">
+          Order Now
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <!-- Product Image Section -->
+    <mj-section background-color="#FFFFFF" padding="40px 20px">
+      <mj-column>
+        <mj-image src="https://about.starbucks.com/uploads/2026/02/StarbucksReserve_DoubleMatchaMargarita-1536x1536.jpg" alt="New seasonal Starbucks drink" width="300px" align="center" />
+      </mj-column>
+    </mj-section>
+
+    <!-- Body Copy Section -->
+    <mj-section background-color="#FFFFFF" padding="20px 20px 40px 20px">
+      <mj-column>
+        <mj-text font-size="16px" align="center" padding="0 0 25px 0" line-height="1.6">
+          Rich, indulgent flavors with a hint of something seasonal — it's the kind of drink you'll want to make a ritual. Available for a limited time, exclusively for Rewards members.
+        </mj-text>
+        <mj-button background-color="#00704A" color="#FFFFFF" href="https://www.starbucks.com" font-weight="bold" border-radius="50px" align="center">
+          Get It Before It's Gone
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <!-- Gold Accent Divider -->
+    <mj-section background-color="#FFFFFF" padding="0 20px">
+      <mj-column>
+        <mj-divider border-color="#CBA258" border-width="3px" border-style="solid" width="80px" />
+      </mj-column>
+    </mj-section>
+
+    <!-- Accent Message Section -->
+    <mj-section background-color="#CBA258" padding="30px 20px">
+      <mj-column>
+        <mj-text font-size="18px" font-weight="bold" color="#FFFFFF" align="center" padding="0">
+          Rewards members get it first
+        </mj-text>
+        <mj-text font-size="16px" color="#FFFFFF" align="center" padding="10px 0 0 0">
+          Your exclusive access starts now.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section background-color="#FFFFFF" padding="40px 20px 60px 20px">
+      <mj-column>
+        <mj-text font-size="14px" color="#999999" align="center" padding="0 0 10px 0">
+          Starbucks Coffee Company
+        </mj-text>
+        <mj-text font-size="12px" color="#999999" align="center" padding="0">
+          It starts with you
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
