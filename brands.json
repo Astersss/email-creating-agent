@@ -1,0 +1,10 @@
+{
+  "brands": [
+    {
+      "id": "starbucks",
+      "name": "Starbucks",
+      "primary_color": "#00704A",
+      "logo_url": null
+    }
+  ]
+}

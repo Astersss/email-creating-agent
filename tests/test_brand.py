@@ -1,0 +1,69 @@
+import json
+import pytest
+from brand import BrandConfig, load_brands, load_model
+
+
+def test_brand_config_required_fields():
+    brand = BrandConfig(id="test", name="Test Brand")
+    assert brand.id == "test"
+    assert brand.name == "Test Brand"
+    assert brand.primary_color is None
+    assert brand.logo_url is None
+
+
+def test_brand_config_all_fields():
+    brand = BrandConfig(
+        id="sb",
+        name="Starbucks",
+        primary_color="#00704A",
+        logo_url="https://example.com/logo.png",
+    )
+    assert brand.primary_color == "#00704A"
+    assert brand.logo_url == "https://example.com/logo.png"
+
+
+def test_load_brands(tmp_path):
+    brands_file = tmp_path / "brands.json"
+    brands_file.write_text(
+        json.dumps({
+            "brands": [
+                {"id": "starbucks", "name": "Starbucks", "primary_color": "#00704A", "logo_url": None}
+            ]
+        }),
+        encoding="utf-8",
+    )
+    brands = load_brands(path=brands_file)
+    assert len(brands) == 1
+    assert brands[0].id == "starbucks"
+    assert brands[0].name == "Starbucks"
+    assert brands[0].primary_color == "#00704A"
+    assert brands[0].logo_url is None
+
+
+def test_load_brands_multiple(tmp_path):
+    brands_file = tmp_path / "brands.json"
+    brands_file.write_text(
+        json.dumps({
+            "brands": [
+                {"id": "a", "name": "Brand A", "primary_color": "#FF0000", "logo_url": None},
+                {"id": "b", "name": "Brand B", "primary_color": None, "logo_url": None},
+            ]
+        }),
+        encoding="utf-8",
+    )
+    brands = load_brands(path=brands_file)
+    assert len(brands) == 2
+    assert brands[1].id == "b"
+    assert brands[1].primary_color is None
+
+
+def test_load_model(tmp_path):
+    config_file = tmp_path / "config.json"
+    config_file.write_text(json.dumps({"model": "MiniMax-Text-01"}), encoding="utf-8")
+    assert load_model(path=config_file) == "MiniMax-Text-01"
+
+
+def test_load_model_custom(tmp_path):
+    config_file = tmp_path / "config.json"
+    config_file.write_text(json.dumps({"model": "MiniMax-M1"}), encoding="utf-8")
+    assert load_model(path=config_file) == "MiniMax-M1"
