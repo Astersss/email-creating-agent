@@ -53,7 +53,6 @@ class EmailAgent:
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_prompt},
             ],
-            "response_format": {"type": "json_object"},
         }
 
         headers = {
