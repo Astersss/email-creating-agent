@@ -2,7 +2,7 @@ import json
 import pytest
 from unittest.mock import MagicMock, patch
 from brand import BrandConfig
-from agent import EmailAgent, ImageStrategy, resolve_image_strategy
+from agent import EmailAgent, ImageStrategy, resolve_image_strategy, patch_image_url, strip_image_marker
 
 STARBUCKS = BrandConfig(id="starbucks", name="Starbucks", primary_color="#00704A")
 
@@ -151,3 +151,30 @@ def test_resolve_image_strategy_mood_types():
 def test_resolve_image_strategy_none_types():
     for email_type in ["transactional", "newsletter", "unknown", "", "TRANSACTIONAL"]:
         assert resolve_image_strategy(email_type) == ImageStrategy.NONE, email_type
+
+
+MJML_WITH_MARKER = '<mjml><mj-body><mj-section><mj-column><mj-image src="{{IMAGE_URL}}" alt="drink" width="600px" align="center" /><mj-text>Hello</mj-text></mj-column></mj-section></mj-body></mjml>'
+MJML_NO_MARKER = '<mjml><mj-body><mj-section><mj-column><mj-text>Hello</mj-text></mj-column></mj-section></mj-body></mjml>'
+
+
+def test_patch_image_url_replaces_marker():
+    result = patch_image_url(MJML_WITH_MARKER, "https://example.com/img.jpg")
+    assert 'src="https://example.com/img.jpg"' in result
+    assert "{{IMAGE_URL}}" not in result
+
+
+def test_patch_image_url_no_marker_returns_unchanged():
+    result = patch_image_url(MJML_NO_MARKER, "https://example.com/img.jpg")
+    assert result == MJML_NO_MARKER
+
+
+def test_strip_image_marker_removes_mj_image_tag():
+    result = strip_image_marker(MJML_WITH_MARKER)
+    assert "{{IMAGE_URL}}" not in result
+    assert "<mj-image" not in result
+    assert "<mj-text>Hello</mj-text>" in result
+
+
+def test_strip_image_marker_no_marker_returns_unchanged():
+    result = strip_image_marker(MJML_NO_MARKER)
+    assert result == MJML_NO_MARKER

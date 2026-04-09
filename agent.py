@@ -30,6 +30,14 @@ def resolve_image_strategy(email_type: str) -> ImageStrategy:
     return ImageStrategy.NONE
 
 
+def patch_image_url(mjml: str, url: str) -> str:
+    return mjml.replace("{{IMAGE_URL}}", url)
+
+
+def strip_image_marker(mjml: str) -> str:
+    return re.sub(r'<mj-image[^>]*\{\{IMAGE_URL\}\}[^>]*/>', '', mjml)
+
+
 MINIMAX_API_URL = "https://api.minimaxi.chat/v1/text/chatcompletion_v2"
 REQUIRED_KEYS = {"subject_lines", "preheader", "mjml", "rationale"}
 
