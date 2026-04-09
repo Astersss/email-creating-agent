@@ -51,10 +51,19 @@ class EmailAgent:
         if not isinstance(content, str):
             raise ValueError(f"Expected string content from model, got {type(content).__name__}")
 
+        # Strip <think>...</think> reasoning block if present (e.g. MiniMax-M2.5)
+        stripped = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
+
+        # Strip markdown code fences if present (e.g. ```json ... ```)
+        if stripped.startswith("```"):
+            stripped = stripped.split("\n", 1)[-1]
+            stripped = stripped.rsplit("```", 1)[0].strip()
+
         try:
-            data = json.loads(content)
+            data = json.loads(stripped)
         except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON from model: {e}")
+            preview = stripped[:500] if len(stripped) > 500 else stripped
+            raise ValueError(f"Invalid JSON from model: {e}\nRaw content: {preview!r}")
 
         missing = REQUIRED_KEYS - data.keys()
         if missing:
@@ -118,7 +127,7 @@ class EmailAgent:
             MINIMAX_API_URL,
             json=payload,
             headers=headers,
-            timeout=60.0,
+            timeout=180.0,
         )
 
         if response.status_code != 200:
@@ -132,8 +141,11 @@ class EmailAgent:
             raise RuntimeError(f"MiniMax API returned no choices: {body}")
         message = choices[0].get("message", {})
         content = message.get("content")
-        if content is None:
-            raise RuntimeError(f"MiniMax API choice missing content: {choices[0]}")
+        if not content:
+            raise RuntimeError(
+                f"MiniMax API returned empty content. finish_reason={choices[0].get('finish_reason')!r} "
+                f"message={message!r}"
+            )
 
         package = self._parse_response(content)
 
@@ -146,6 +158,10 @@ class EmailAgent:
             image_prompt = package.get("image_prompt")
             if image_prompt:
                 image_url = self.generate_mood_image(image_prompt)
+                if image_url is None:
+                    package["_warning"] = "Mood image generation failed — image was omitted."
+            else:
+                package["_warning"] = "Model did not return an image_prompt for this mood email — image was omitted."
 
         marker_present = "{{IMAGE_URL}}" in package["mjml"]
 
@@ -156,8 +172,5 @@ class EmailAgent:
             package["mjml"] = strip_image_marker(package["mjml"])
         else:
             package["mjml"] = strip_image_marker(package["mjml"])
-
-        if brand.logo_url:
-            package["mjml"] = package["mjml"].replace("{{LOGO_URL}}", brand.logo_url)
 
         return package

@@ -27,9 +27,9 @@ For Phase 1, these are hardcoded in `main.py` using the Starbucks promo scenario
 
 ## Output
 
-The agent produces two output files in `output/`:
+The agent produces two output files in `output/`, named using brand ID, email type slug, and timestamp:
 
-### `output/email_package.json`
+### `output/<brand-id>_<email-type>_<YYYYMMDD_HHMM>_package.json`
 ```json
 {
   "subject_lines": ["Option 1", "Option 2", "Option 3"],
@@ -39,8 +39,10 @@ The agent produces two output files in `output/`:
 }
 ```
 
-### `output/email.mjml`
+### `output/<brand-id>_<email-type>_<YYYYMMDD_HHMM>.mjml`
 The MJML string extracted from the package, saved separately for easy rendering/previewing.
+
+Example: `output/starbucks_promotional_20260409_1944.mjml`
 
 ---
 
@@ -77,12 +79,15 @@ Single-prompt agent — one LLM call with a carefully engineered system prompt.
 
 ```
 mithra/
-├── main.py              # Entry point — hardcoded inputs, runs agent, saves output
+├── main.py              # Entry point — interactive CLI, runs agent, saves output
 ├── agent.py             # EmailAgent class — prompt construction, API call, response parsing
 ├── prompts.py           # System prompt and user prompt templates
+├── brand.py             # BrandConfig dataclass + load_brands() / load_model()
+├── brands.json          # Brand registry
+├── config.json          # Active model configuration
 ├── output/
-│   ├── email.mjml       # Generated MJML (extracted for convenience)
-│   └── email_package.json  # Full output package
+│   ├── <brand-id>_<email-type>_<YYYYMMDD_HHMM>.mjml          # Generated MJML
+│   └── <brand-id>_<email-type>_<YYYYMMDD_HHMM>_package.json  # Full output package
 └── requirements.txt     # httpx
 ```
 

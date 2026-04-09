@@ -17,7 +17,7 @@ Upgrade the email agent from a hardcoded script to an interactive CLI tool that 
 | Interface | Hardcoded `main.py` | Interactive CLI |
 | Brand | None (generic style) | `brands.json` + custom entry |
 | Model | Hardcoded `MiniMax-Text-01` | `config.json`, switchable |
-| Output naming | `email.mjml` | `<brand-id>_email.mjml` |
+| Output naming | `email.mjml` | `<brand-id>_<email-type>_<YYYYMMDD_HHMM>.mjml` |
 | Prompt | Static system prompt | Brand-aware user prompt |
 
 ---
@@ -41,7 +41,7 @@ Pre-defined brand registry. Users edit this file to add brands.
 ```
 
 Fields:
-- `id` — slug used for output file naming (e.g. `starbucks_email.mjml`)
+- `id` — slug used for output file naming (e.g. `starbucks_promotional_20260409_1944.mjml`)
 - `name` — display name shown in CLI
 - `primary_color` — hex color for buttons, headers, dividers (optional)
 - `logo_url` — URL of brand logo image, added as `mj-image` at top of email (optional)
@@ -149,8 +149,8 @@ Generating email...
 === PREHEADER ===  ...
 === RATIONALE ===  ...
 === OUTPUT FILES ===
-  MJML:    output/starbucks_email.mjml
-  Package: output/starbucks_email_package.json
+  MJML:    output/starbucks_promotional_20260409_1944.mjml
+  Package: output/starbucks_promotional_20260409_1944_package.json
 ```
 
 Custom brand flow (option 0):
@@ -165,9 +165,7 @@ Custom brands get `id` derived from name (lowercased, spaces → underscores).
 
 ## Output File Naming
 
-Files are saved as `output/<brand-id>_email.mjml` and `output/<brand-id>_email_package.json`. Multiple brands can be generated without overwriting each other.
-
-The `.gitignore` already excludes `output/email.mjml` and `output/email_package.json` — update it to exclude `output/*_email.mjml` and `output/*_email_package.json`.
+Files are saved as `output/<brand-id>_<email-type>_<YYYYMMDD_HHMM>.mjml` and `output/<brand-id>_<email-type>_<YYYYMMDD_HHMM>_package.json`. The timestamp prevents overwrites across runs; brand ID and email type slug make files self-describing.
 
 ---
 

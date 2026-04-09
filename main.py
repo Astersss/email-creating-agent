@@ -1,7 +1,9 @@
 import json
 import os
+import re
+from datetime import datetime
 from pathlib import Path
-from brand import BrandConfig, load_brands, load_model, find_logo_data_uri
+from brand import BrandConfig, load_brands, load_model
 from agent import EmailAgent, resolve_image_strategy, ImageStrategy
 
 MINIMAX_API_KEY = "sk-api-A3aHSpnsft2LIJcji5z45FFC4Qx3S0Ed8RV7LuTJSJC1XH9XcWN1Adw6HjJS2mrljHSQqyowBR1Hph9g65simY8d_5ypq6C7ka8_6dolS8iDR5pBS3AdtCI"
@@ -89,10 +91,16 @@ def _strip_base64_for_preview(mjml: str) -> str:
     return re.sub(r'data:[^;]+;base64,[A-Za-z0-9+/=]+', _TINY_PNG, mjml)
 
 
-def save_output(brand_id: str, package: dict) -> tuple[Path, Path]:
+def _make_slug(text: str) -> str:
+    return re.sub(r'[^a-z0-9]+', '_', text.strip().lower()).strip('_')
+
+
+def save_output(brand_id: str, email_type: str, package: dict) -> tuple[Path, Path]:
     OUTPUT_DIR.mkdir(exist_ok=True)
-    mjml_path = OUTPUT_DIR / f"{brand_id}_email.mjml"
-    package_path = OUTPUT_DIR / f"{brand_id}_email_package.json"
+    ts = datetime.now().strftime("%Y%m%d_%H%M")
+    stem = f"{brand_id}_{_make_slug(email_type)}_{ts}"
+    mjml_path = OUTPUT_DIR / f"{stem}.mjml"
+    package_path = OUTPUT_DIR / f"{stem}_package.json"
     mjml_path.write_text(_strip_base64_for_preview(package["mjml"]), encoding="utf-8")
     package_path.write_text(json.dumps(package, indent=2, ensure_ascii=False), encoding="utf-8")
     return mjml_path, package_path
@@ -119,13 +127,8 @@ def main():
     print("=== Email Agent ===")
     brand = select_brand(brands)
 
-    logo_uri = find_logo_data_uri(brand.id)
-    if logo_uri:
-        brand.logo_url = logo_uri
-
     color_info = f" ({brand.primary_color})" if brand.primary_color else ""
-    logo_info = " [logo found]" if logo_uri else ""
-    print(f"\nBrand: {brand.name}{color_info}{logo_info}")
+    print(f"\nBrand: {brand.name}{color_info}")
     print(f"Model: {model}")
 
     inputs = prompt_campaign_inputs()
@@ -139,7 +142,7 @@ def main():
     agent = EmailAgent(api_key=api_key)
     package = agent.generate(brand=brand, model=model, product_image_url=product_image_url, **inputs)
 
-    mjml_path, package_path = save_output(brand.id, package)
+    mjml_path, package_path = save_output(brand.id, inputs["email_type"], package)
     print_results(package, mjml_path, package_path)
 
 

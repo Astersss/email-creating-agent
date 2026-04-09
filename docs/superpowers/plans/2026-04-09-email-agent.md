@@ -18,8 +18,8 @@
 | `prompts.py` | System prompt constant + `build_user_prompt()` function |
 | `agent.py` | `EmailAgent` class — API call, response parsing |
 | `main.py` | Hardcoded inputs, runs agent, prints + saves output |
-| `output/email.mjml` | Generated MJML (created at runtime) |
-| `output/email_package.json` | Full output package (created at runtime) |
+| `output/<brand-id>_<email-type>_<YYYYMMDD_HHMM>.mjml` | Generated MJML (created at runtime) |
+| `output/<brand-id>_<email-type>_<YYYYMMDD_HHMM>_package.json` | Full output package (created at runtime) |
 | `tests/test_prompts.py` | Tests for prompt building |
 | `tests/test_agent.py` | Tests for response parsing (mocked API) |
 

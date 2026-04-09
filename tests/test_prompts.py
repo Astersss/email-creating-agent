@@ -91,64 +91,17 @@ def test_build_user_prompt_uses_neutral_palette_when_no_color():
     assert "#0066CC" in prompt
 
 
-def test_build_user_prompt_includes_logo_placeholder_when_set():
-    brand_with_logo = BrandConfig(
-        id="test", name="Test", logo_url="https://example.com/logo.png"
-    )
+def test_build_user_prompt_color_present():
+    brand = BrandConfig(id="full", name="FullBrand", primary_color="#FF0000")
     prompt = build_user_prompt(
-        brand=brand_with_logo,
-        email_type="promo",
-        email_classification="B2C",
-        target_customers="all",
-        goal="sell",
-    )
-    assert "{{LOGO_URL}}" in prompt
-    assert "https://example.com/logo.png" not in prompt
-
-
-def test_build_user_prompt_no_logo_section_when_logo_absent():
-    prompt = build_user_prompt(
-        brand=MINIMAL_BRAND,
-        email_type="promo",
-        email_classification="B2C",
-        target_customers="all",
-        goal="sell",
-    )
-    assert "Logo URL" not in prompt
-
-
-def test_build_user_prompt_color_and_logo_both_present():
-    full_brand = BrandConfig(
-        id="full", name="FullBrand",
-        primary_color="#FF0000",
-        logo_url="https://example.com/logo.png",
-    )
-    prompt = build_user_prompt(
-        brand=full_brand,
+        brand=brand,
         email_type="promo",
         email_classification="B2C",
         target_customers="all",
         goal="sell",
     )
     assert "#FF0000" in prompt
-    assert "{{LOGO_URL}}" in prompt
-    assert "https://example.com/logo.png" not in prompt
     assert "#0066CC" not in prompt
-    assert "mj-image" in prompt
-
-
-def test_build_user_prompt_logo_without_color_uses_neutral_palette():
-    logo_only = BrandConfig(id="logo-only", name="LogoOnly",
-                            logo_url="https://example.com/logo.png")
-    prompt = build_user_prompt(
-        brand=logo_only,
-        email_type="promo",
-        email_classification="B2C",
-        target_customers="all",
-        goal="sell",
-    )
-    assert "#0066CC" in prompt
-    assert "mj-image" in prompt
 
 
 def test_system_prompt_does_not_restrict_brand_styling():
