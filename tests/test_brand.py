@@ -1,5 +1,5 @@
 import json
-from brand import BrandConfig, load_brands, load_model
+from brand import BrandConfig, load_brands, load_model, find_logo_data_uri
 
 
 def test_brand_config_required_fields():
@@ -123,3 +123,28 @@ def test_load_brands_loads_new_fields(tmp_path):
     assert brands[0].brand_voice == "warm, welcoming"
     assert brands[0].website_url == "https://www.starbucks.com"
     assert brands[0].tagline == "It starts with you"
+
+
+def test_find_logo_data_uri_returns_none_when_no_file(tmp_path):
+    assert find_logo_data_uri("starbucks", logos_dir=tmp_path) is None
+
+
+def test_find_logo_data_uri_returns_data_uri_for_png(tmp_path):
+    (tmp_path / "starbucks.png").write_bytes(b"\x89PNG\r\n")
+    result = find_logo_data_uri("starbucks", logos_dir=tmp_path)
+    assert result is not None
+    assert result.startswith("data:image/png;base64,")
+
+
+def test_find_logo_data_uri_returns_data_uri_for_jpg(tmp_path):
+    (tmp_path / "nike.jpg").write_bytes(b"\xff\xd8\xff")
+    result = find_logo_data_uri("nike", logos_dir=tmp_path)
+    assert result is not None
+    assert result.startswith("data:image/jpeg;base64,")
+
+
+def test_find_logo_data_uri_prefers_png_over_jpg(tmp_path):
+    (tmp_path / "brand.png").write_bytes(b"\x89PNG")
+    (tmp_path / "brand.jpg").write_bytes(b"\xff\xd8")
+    result = find_logo_data_uri("brand", logos_dir=tmp_path)
+    assert result.startswith("data:image/png;base64,")

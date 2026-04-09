@@ -1,7 +1,7 @@
 import json
 import os
 from pathlib import Path
-from brand import BrandConfig, load_brands, load_model
+from brand import BrandConfig, load_brands, load_model, find_logo_data_uri
 from agent import EmailAgent, resolve_image_strategy, ImageStrategy
 
 MINIMAX_API_KEY = "sk-api-A3aHSpnsft2LIJcji5z45FFC4Qx3S0Ed8RV7LuTJSJC1XH9XcWN1Adw6HjJS2mrljHSQqyowBR1Hph9g65simY8d_5ypq6C7ka8_6dolS8iDR5pBS3AdtCI"
@@ -109,8 +109,13 @@ def main():
     print("=== Email Agent ===")
     brand = select_brand(brands)
 
+    logo_uri = find_logo_data_uri(brand.id)
+    if logo_uri:
+        brand.logo_url = logo_uri
+
     color_info = f" ({brand.primary_color})" if brand.primary_color else ""
-    print(f"\nBrand: {brand.name}{color_info}")
+    logo_info = " [logo found]" if logo_uri else ""
+    print(f"\nBrand: {brand.name}{color_info}{logo_info}")
     print(f"Model: {model}")
 
     inputs = prompt_campaign_inputs()

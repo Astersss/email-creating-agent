@@ -1,3 +1,4 @@
+import base64
 import dataclasses
 import json
 from dataclasses import dataclass
@@ -5,6 +6,9 @@ from pathlib import Path
 
 BRANDS_FILE = Path(__file__).parent / "brands.json"
 CONFIG_FILE = Path(__file__).parent / "config.json"
+LOGOS_DIR = Path(__file__).parent / "logos"
+
+_LOGO_EXTENSIONS = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}
 
 
 @dataclass
@@ -32,6 +36,15 @@ def load_brands(path: Path = BRANDS_FILE) -> list[BrandConfig]:
         raise ValueError(f"Invalid JSON in {path}: {e}") from e
     return [BrandConfig(**{k: v for k, v in b.items() if k in _BRAND_FIELDS})
             for b in data["brands"]]
+
+
+def find_logo_data_uri(brand_id: str, logos_dir: Path = LOGOS_DIR) -> str | None:
+    for ext, mime in _LOGO_EXTENSIONS.items():
+        path = logos_dir / f"{brand_id}{ext}"
+        if path.exists():
+            data = base64.b64encode(path.read_bytes()).decode()
+            return f"data:{mime};base64,{data}"
+    return None
 
 
 def load_model(path: Path = CONFIG_FILE) -> str:
