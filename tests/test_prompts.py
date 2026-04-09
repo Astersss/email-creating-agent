@@ -36,3 +36,16 @@ def test_build_user_prompt_returns_string():
     )
     assert isinstance(prompt, str)
     assert len(prompt) > 20
+
+
+def test_build_user_prompt_field_labels_are_correct():
+    prompt = build_user_prompt(
+        email_type="TYPE_SENTINEL",
+        email_classification="CLASS_SENTINEL",
+        target_customers="CUSTOMERS_SENTINEL",
+        goal="GOAL_SENTINEL",
+    )
+    assert "Email type: TYPE_SENTINEL" in prompt
+    assert "Classification: CLASS_SENTINEL" in prompt
+    assert "Target customers: CUSTOMERS_SENTINEL" in prompt
+    assert "Goal: GOAL_SENTINEL" in prompt
