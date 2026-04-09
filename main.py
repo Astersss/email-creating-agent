@@ -1,48 +1,94 @@
 import json
 import os
 from pathlib import Path
+from brand import BrandConfig, load_brands, load_model
 from agent import EmailAgent
 
-
-INPUTS = {
-    "email_type": "promotional",
-    "email_classification": "B2C",
-    "target_customers": "Starbucks loyalty members aged 18-35, coffee and tea enthusiasts",
-    "goal": "Drive trial purchases of a newly launched seasonal drink",
-}
-
+MINIMAX_API_KEY = "sk-api-A3aHSpnsft2LIJcji5z45FFC4Qx3S0Ed8RV7LuTJSJC1XH9XcWN1Adw6HjJS2mrljHSQqyowBR1Hph9g65simY8d_5ypq6C7ka8_6dolS8iDR5pBS3AdtCI"
 OUTPUT_DIR = Path(__file__).parent / "output"
 
 
-def main():
-    api_key = os.environ.get("MINIMAX_API_KEY")
-    if not api_key:
-        raise EnvironmentError("MINIMAX_API_KEY environment variable is not set")
+def make_brand_id(name: str) -> str:
+    return name.strip().lower().replace(" ", "_")
 
-    print("Generating email package...")
-    print(f"Campaign: {INPUTS['goal']}")
-    print(f"Audience: {INPUTS['target_customers']}\n")
 
-    agent = EmailAgent(api_key=api_key)
-    package = agent.generate(**INPUTS)
+def select_brand(brands: list[BrandConfig]) -> BrandConfig:
+    print("\nAvailable brands:")
+    for i, brand in enumerate(brands, 1):
+        color_info = f" ({brand.primary_color})" if brand.primary_color else ""
+        print(f"  {i}. {brand.name}{color_info}")
+    print("  0. Enter custom brand")
 
+    while True:
+        choice = input(f"\nSelect brand [0-{len(brands)}]: ").strip()
+        if choice == "0":
+            return _enter_custom_brand()
+        if choice.isdigit() and 1 <= int(choice) <= len(brands):
+            return brands[int(choice) - 1]
+        print(f"Please enter a number between 0 and {len(brands)}.")
+
+
+def _enter_custom_brand() -> BrandConfig:
+    name = input("Brand name: ").strip()
+    color = input("Primary color (hex, optional — press Enter to skip): ").strip() or None
+    logo = input("Logo URL (optional — press Enter to skip): ").strip() or None
+    return BrandConfig(id=make_brand_id(name), name=name, primary_color=color, logo_url=logo)
+
+
+def prompt_campaign_inputs() -> dict:
+    print()
+    email_type = input("Email type (e.g. promotional, announcement): ").strip()
+    email_classification = input("Email classification (e.g. B2C, B2B): ").strip()
+    target_customers = input("Target customers: ").strip()
+    goal = input("Goal: ").strip()
+    return {
+        "email_type": email_type,
+        "email_classification": email_classification,
+        "target_customers": target_customers,
+        "goal": goal,
+    }
+
+
+def save_output(brand_id: str, package: dict) -> tuple[Path, Path]:
     OUTPUT_DIR.mkdir(exist_ok=True)
-
-    mjml_path = OUTPUT_DIR / "email.mjml"
+    mjml_path = OUTPUT_DIR / f"{brand_id}_email.mjml"
+    package_path = OUTPUT_DIR / f"{brand_id}_email_package.json"
     mjml_path.write_text(package["mjml"], encoding="utf-8")
-
-    package_path = OUTPUT_DIR / "email_package.json"
     package_path.write_text(json.dumps(package, indent=2, ensure_ascii=False), encoding="utf-8")
+    return mjml_path, package_path
 
-    print("=== SUBJECT LINES ===")
+
+def print_results(package: dict, mjml_path: Path, package_path: Path) -> None:
+    print("\n=== SUBJECT LINES ===")
     for i, line in enumerate(package["subject_lines"], 1):
         print(f"  {i}. {line}")
-
     print(f"\n=== PREHEADER ===\n  {package['preheader']}")
     print(f"\n=== RATIONALE ===\n  {package['rationale']}")
     print("\n=== OUTPUT FILES ===")
     print(f"  MJML:    {mjml_path}")
     print(f"  Package: {package_path}")
+
+
+def main():
+    api_key = os.environ.get("MINIMAX_API_KEY", MINIMAX_API_KEY)
+    brands = load_brands()
+    model = load_model()
+
+    print("=== Email Agent ===")
+    brand = select_brand(brands)
+
+    color_info = f" ({brand.primary_color})" if brand.primary_color else ""
+    print(f"\nBrand: {brand.name}{color_info}")
+    print(f"Model: {model}")
+
+    inputs = prompt_campaign_inputs()
+
+    print("\nGenerating email...")
+    agent = EmailAgent(api_key=api_key)
+    package = agent.generate(brand=brand, model=model, **inputs)
+
+    mjml_path, package_path = save_output(brand.id, package)
+    print_results(package, mjml_path, package_path)
 
 
 if __name__ == "__main__":

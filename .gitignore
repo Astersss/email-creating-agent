@@ -8,5 +8,5 @@ __pycache__/
 .idea/
 
 # Runtime output (generated at runtime, not source)
-output/email.mjml
-output/email_package.json
+output/*.mjml
+output/*.json
