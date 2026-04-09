@@ -91,6 +91,7 @@ class EmailAgent:
         target_customers: str,
         goal: str,
         model: str,
+        product_image_url: str | None = None,
     ) -> dict:
         user_prompt = build_user_prompt(
             brand=brand,
@@ -140,7 +141,7 @@ class EmailAgent:
         image_url: str | None = None
 
         if strategy == ImageStrategy.PRODUCT_PHOTO:
-            image_url = brand.product_image_url
+            image_url = product_image_url
         elif strategy == ImageStrategy.MOOD_GENERATED:
             image_prompt = package.get("image_prompt")
             if image_prompt:

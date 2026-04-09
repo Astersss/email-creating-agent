@@ -6,10 +6,7 @@ from agent import EmailAgent, ImageStrategy, resolve_image_strategy, patch_image
 
 STARBUCKS = BrandConfig(id="starbucks", name="Starbucks", primary_color="#00704A")
 
-STARBUCKS_WITH_PRODUCT_IMAGE = BrandConfig(
-    id="starbucks", name="Starbucks", primary_color="#00704A",
-    product_image_url="https://brand.starbucks.com/drink.jpg"
-)
+STARBUCKS_PRODUCT_IMAGE_URL = "https://brand.starbucks.com/drink.jpg"
 
 VALID_PACKAGE = {
     "subject_lines": ["Try our new drink", "New arrival at Starbucks", "Sip something new"],
@@ -307,8 +304,9 @@ def test_generate_promotional_uses_product_image_url(mock_post):
 
     agent = EmailAgent(api_key="test-key")
     result = agent.generate(
-        brand=STARBUCKS_WITH_PRODUCT_IMAGE, email_type="promotional", email_classification="B2C",
+        brand=STARBUCKS, email_type="promotional", email_classification="B2C",
         target_customers="all", goal="sell", model="MiniMax-Text-01",
+        product_image_url=STARBUCKS_PRODUCT_IMAGE_URL,
     )
     assert 'src="https://brand.starbucks.com/drink.jpg"' in result["mjml"]
     assert "{{IMAGE_URL}}" not in result["mjml"]

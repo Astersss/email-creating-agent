@@ -14,7 +14,6 @@ class BrandConfig:
     primary_color: str | None = None
     logo_url: str | None = None
     secondary_color: str | None = None
-    product_image_url: str | None = None
     font_family: str | None = None
     brand_voice: str | None = None
     website_url: str | None = None
