@@ -11,7 +11,7 @@ INPUTS = {
     "goal": "Drive trial purchases of a newly launched seasonal drink",
 }
 
-OUTPUT_DIR = Path("output")
+OUTPUT_DIR = Path(__file__).parent / "output"
 
 
 def main():
@@ -40,7 +40,7 @@ def main():
 
     print(f"\n=== PREHEADER ===\n  {package['preheader']}")
     print(f"\n=== RATIONALE ===\n  {package['rationale']}")
-    print(f"\n=== OUTPUT FILES ===")
+    print("\n=== OUTPUT FILES ===")
     print(f"  MJML:    {mjml_path}")
     print(f"  Package: {package_path}")
 
