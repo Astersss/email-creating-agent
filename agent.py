@@ -13,6 +13,9 @@ class EmailAgent:
         self.api_key = api_key
 
     def _parse_response(self, content: str) -> dict:
+        if not isinstance(content, str):
+            raise ValueError(f"Expected string content from model, got {type(content).__name__}")
+
         try:
             data = json.loads(content)
         except json.JSONDecodeError as e:
@@ -24,6 +27,9 @@ class EmailAgent:
 
         if not isinstance(data["subject_lines"], list):
             raise ValueError("subject_lines must be a list")
+
+        if len(data["subject_lines"]) == 0:
+            raise ValueError("subject_lines must contain at least one entry")
 
         return data
 
@@ -67,5 +73,12 @@ class EmailAgent:
                 f"MiniMax API error {response.status_code}: {response.text}"
             )
 
-        content = response.json()["choices"][0]["message"]["content"]
+        body = response.json()
+        choices = body.get("choices")
+        if not choices:
+            raise RuntimeError(f"MiniMax API returned no choices: {body}")
+        message = choices[0].get("message", {})
+        content = message.get("content")
+        if content is None:
+            raise RuntimeError(f"MiniMax API choice missing content: {choices[0]}")
         return self._parse_response(content)

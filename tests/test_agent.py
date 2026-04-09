@@ -44,3 +44,42 @@ def test_parse_response_raises_on_wrong_subject_lines_type():
 def test_agent_init_stores_api_key():
     agent = EmailAgent(api_key="my-secret-key")
     assert agent.api_key == "my-secret-key"
+
+
+@patch("agent.httpx.post")
+def test_generate_calls_api_and_returns_parsed_package(mock_post):
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "choices": [{"message": {"content": json.dumps(VALID_PACKAGE)}}]
+    }
+    mock_post.return_value = mock_response
+
+    agent = EmailAgent(api_key="test-key")
+    result = agent.generate(
+        email_type="promotional",
+        email_classification="B2C",
+        target_customers="coffee lovers",
+        goal="sell more coffee",
+    )
+    assert result == VALID_PACKAGE
+    mock_post.assert_called_once()
+    call_kwargs = mock_post.call_args.kwargs
+    assert call_kwargs["json"]["model"] == "MiniMax-Text-01"
+
+
+@patch("agent.httpx.post")
+def test_generate_raises_on_non_200(mock_post):
+    mock_response = MagicMock()
+    mock_response.status_code = 429
+    mock_response.text = "rate limit"
+    mock_post.return_value = mock_response
+
+    agent = EmailAgent(api_key="test-key")
+    with pytest.raises(RuntimeError, match="MiniMax API error 429"):
+        agent.generate(
+            email_type="promo",
+            email_classification="B2C",
+            target_customers="all",
+            goal="sell",
+        )
