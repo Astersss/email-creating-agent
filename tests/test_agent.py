@@ -2,7 +2,7 @@ import json
 import pytest
 from unittest.mock import MagicMock, patch
 from brand import BrandConfig
-from agent import EmailAgent
+from agent import EmailAgent, ImageStrategy, resolve_image_strategy
 
 STARBUCKS = BrandConfig(id="starbucks", name="Starbucks", primary_color="#00704A")
 
@@ -134,3 +134,20 @@ def test_generate_raises_on_non_200(mock_post):
             goal="sell",
             model="MiniMax-Text-01",
         )
+
+
+def test_resolve_image_strategy_product_types():
+    for email_type in ["promotional", "sale", "product launch", "new arrival", "abandoned cart",
+                       "Promotional", "SALE"]:
+        assert resolve_image_strategy(email_type) == ImageStrategy.PRODUCT_PHOTO, email_type
+
+
+def test_resolve_image_strategy_mood_types():
+    for email_type in ["seasonal", "loyalty reward", "milestone", "re-engagement",
+                       "win-back", "welcome", "event invitation", "Seasonal"]:
+        assert resolve_image_strategy(email_type) == ImageStrategy.MOOD_GENERATED, email_type
+
+
+def test_resolve_image_strategy_none_types():
+    for email_type in ["transactional", "newsletter", "unknown", "", "TRANSACTIONAL"]:
+        assert resolve_image_strategy(email_type) == ImageStrategy.NONE, email_type

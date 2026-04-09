@@ -1,7 +1,34 @@
 import json
+import re
 import httpx
+from enum import Enum
 from brand import BrandConfig
 from prompts import SYSTEM_PROMPT, build_user_prompt
+
+
+class ImageStrategy(Enum):
+    PRODUCT_PHOTO = "product_photo"
+    MOOD_GENERATED = "mood_generated"
+    NONE = "none"
+
+
+_PRODUCT_PHOTO_TYPES = {
+    "promotional", "sale", "product launch", "new arrival", "abandoned cart",
+}
+_MOOD_GENERATED_TYPES = {
+    "seasonal", "loyalty reward", "milestone", "re-engagement",
+    "win-back", "welcome", "event invitation",
+}
+
+
+def resolve_image_strategy(email_type: str) -> ImageStrategy:
+    normalized = email_type.strip().lower()
+    if normalized in _PRODUCT_PHOTO_TYPES:
+        return ImageStrategy.PRODUCT_PHOTO
+    if normalized in _MOOD_GENERATED_TYPES:
+        return ImageStrategy.MOOD_GENERATED
+    return ImageStrategy.NONE
+
 
 MINIMAX_API_URL = "https://api.minimaxi.chat/v1/text/chatcompletion_v2"
 REQUIRED_KEYS = {"subject_lines", "preheader", "mjml", "rationale"}
