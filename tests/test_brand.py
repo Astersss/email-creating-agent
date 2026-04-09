@@ -1,5 +1,4 @@
 import json
-import pytest
 from brand import BrandConfig, load_brands, load_model
 
 

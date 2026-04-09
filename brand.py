@@ -1,3 +1,4 @@
+import dataclasses
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -14,11 +15,27 @@ class BrandConfig:
     logo_url: str | None = None
 
 
+_BRAND_FIELDS = {f.name for f in dataclasses.fields(BrandConfig)}
+
+
 def load_brands(path: Path = BRANDS_FILE) -> list[BrandConfig]:
-    data = json.loads(path.read_text(encoding="utf-8"))
-    return [BrandConfig(**b) for b in data["brands"]]
+    if not path.exists():
+        raise FileNotFoundError(f"Brand config not found: {path}")
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON in {path}: {e}") from e
+    return [BrandConfig(**{k: v for k, v in b.items() if k in _BRAND_FIELDS})
+            for b in data["brands"]]
 
 
 def load_model(path: Path = CONFIG_FILE) -> str:
-    data = json.loads(path.read_text(encoding="utf-8"))
+    if not path.exists():
+        raise FileNotFoundError(f"Model config not found: {path}")
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON in {path}: {e}") from e
+    if "model" not in data:
+        raise KeyError(f"'model' key missing from config: {path}")
     return data["model"]
