@@ -8,6 +8,7 @@ MJML RULES:
 - Sections contain columns, columns contain content elements
 - Use mj-attributes in mj-head to set global styles (font-family, padding, color)
 - Buttons must use mj-button with href="#" as placeholder
+- Do NOT include mj-image unless a real image URL is explicitly provided — never use placeholder image services (via.placeholder.com, placekitten.com, picsum.photos, etc.)
 
 EMAIL BEST PRACTICES:
 - Single, clear call-to-action (CTA)
