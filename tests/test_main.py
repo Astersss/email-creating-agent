@@ -1,5 +1,4 @@
 import json
-import pytest
 from unittest.mock import patch
 from main import make_brand_id, save_output
 

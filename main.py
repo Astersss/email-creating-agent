@@ -29,7 +29,11 @@ def select_brand(brands: list[BrandConfig]) -> BrandConfig:
 
 
 def _enter_custom_brand() -> BrandConfig:
-    name = input("Brand name: ").strip()
+    while True:
+        name = input("Brand name: ").strip()
+        if name:
+            break
+        print("Brand name cannot be empty.")
     color = input("Primary color (hex, optional — press Enter to skip): ").strip() or None
     logo = input("Logo URL (optional — press Enter to skip): ").strip() or None
     return BrandConfig(id=make_brand_id(name), name=name, primary_color=color, logo_url=logo)
@@ -37,16 +41,21 @@ def _enter_custom_brand() -> BrandConfig:
 
 def prompt_campaign_inputs() -> dict:
     print()
-    email_type = input("Email type (e.g. promotional, announcement): ").strip()
-    email_classification = input("Email classification (e.g. B2C, B2B): ").strip()
-    target_customers = input("Target customers: ").strip()
-    goal = input("Goal: ").strip()
-    return {
-        "email_type": email_type,
-        "email_classification": email_classification,
-        "target_customers": target_customers,
-        "goal": goal,
-    }
+    required_fields = [
+        ("email_type", "Email type (e.g. promotional, announcement)"),
+        ("email_classification", "Email classification (e.g. B2C, B2B)"),
+        ("target_customers", "Target customers"),
+        ("goal", "Goal"),
+    ]
+    inputs = {}
+    for key, label in required_fields:
+        while True:
+            value = input(f"{label}: ").strip()
+            if value:
+                break
+            print(f"{label} cannot be empty.")
+        inputs[key] = value
+    return inputs
 
 
 def save_output(brand_id: str, package: dict) -> tuple[Path, Path]:
