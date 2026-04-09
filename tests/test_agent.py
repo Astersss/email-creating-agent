@@ -6,6 +6,11 @@ from agent import EmailAgent, ImageStrategy, resolve_image_strategy, patch_image
 
 STARBUCKS = BrandConfig(id="starbucks", name="Starbucks", primary_color="#00704A")
 
+STARBUCKS_WITH_PRODUCT_IMAGE = BrandConfig(
+    id="starbucks", name="Starbucks", primary_color="#00704A",
+    product_image_url="https://brand.starbucks.com/drink.jpg"
+)
+
 VALID_PACKAGE = {
     "subject_lines": ["Try our new drink", "New arrival at Starbucks", "Sip something new"],
     "preheader": "A bold new flavor is here — made for you.",
@@ -153,6 +158,21 @@ def test_resolve_image_strategy_none_types():
         assert resolve_image_strategy(email_type) == ImageStrategy.NONE, email_type
 
 
+VALID_PACKAGE_WITH_IMAGE_PROMPT = {
+    "subject_lines": ["Try our new drink", "New arrival", "Sip something new"],
+    "preheader": "A bold new flavor is here.",
+    "mjml": '<mjml><mj-body><mj-section><mj-column><mj-image src="{{IMAGE_URL}}" alt="seasonal" width="600px" align="center" /><mj-text>Hello</mj-text></mj-column></mj-section></mj-body></mjml>',
+    "rationale": "Single CTA drives click-through.",
+    "image_prompt": "A cozy autumn coffee scene with warm lighting",
+}
+
+VALID_PACKAGE_PRODUCT = {
+    "subject_lines": ["Try our new drink", "New arrival", "Sip something new"],
+    "preheader": "A bold new flavor is here.",
+    "mjml": '<mjml><mj-body><mj-section><mj-column><mj-image src="{{IMAGE_URL}}" alt="product" width="600px" align="center" /><mj-text>Hello</mj-text></mj-column></mj-section></mj-body></mjml>',
+    "rationale": "Single CTA drives click-through.",
+}
+
 MJML_WITH_MARKER = '<mjml><mj-body><mj-section><mj-column><mj-image src="{{IMAGE_URL}}" alt="drink" width="600px" align="center" /><mj-text>Hello</mj-text></mj-column></mj-section></mj-body></mjml>'
 MJML_NO_MARKER = '<mjml><mj-body><mj-section><mj-column><mj-text>Hello</mj-text></mj-column></mj-section></mj-body></mjml>'
 
@@ -233,3 +253,80 @@ def test_generate_mood_image_returns_none_on_exception(mock_post):
     agent = EmailAgent(api_key="test-key")
     url = agent.generate_mood_image("prompt")
     assert url is None
+
+
+@patch("agent.httpx.post")
+def test_generate_seasonal_calls_image_api_and_patches_mjml(mock_post):
+    text_response = MagicMock()
+    text_response.status_code = 200
+    text_response.json.return_value = {"choices": [{"message": {"content": json.dumps(VALID_PACKAGE_WITH_IMAGE_PROMPT)}}]}
+
+    image_response = MagicMock()
+    image_response.status_code = 200
+    image_response.json.return_value = {"data": {"image_urls": ["https://cdn.minimax.io/abc.jpg"]}, "base_resp": {"status_code": 0}}
+
+    mock_post.side_effect = [text_response, image_response]
+
+    agent = EmailAgent(api_key="test-key")
+    result = agent.generate(
+        brand=STARBUCKS, email_type="seasonal", email_classification="B2C",
+        target_customers="all", goal="seasonal engagement", model="MiniMax-Text-01",
+    )
+    assert 'src="https://cdn.minimax.io/abc.jpg"' in result["mjml"]
+    assert "{{IMAGE_URL}}" not in result["mjml"]
+    assert mock_post.call_count == 2
+
+
+@patch("agent.httpx.post")
+def test_generate_seasonal_strips_image_on_image_api_failure(mock_post):
+    text_response = MagicMock()
+    text_response.status_code = 200
+    text_response.json.return_value = {"choices": [{"message": {"content": json.dumps(VALID_PACKAGE_WITH_IMAGE_PROMPT)}}]}
+
+    image_response = MagicMock()
+    image_response.status_code = 500
+    image_response.text = "error"
+
+    mock_post.side_effect = [text_response, image_response]
+
+    agent = EmailAgent(api_key="test-key")
+    result = agent.generate(
+        brand=STARBUCKS, email_type="seasonal", email_classification="B2C",
+        target_customers="all", goal="seasonal engagement", model="MiniMax-Text-01",
+    )
+    assert "{{IMAGE_URL}}" not in result["mjml"]
+    assert "<mj-image" not in result["mjml"]
+
+
+@patch("agent.httpx.post")
+def test_generate_promotional_uses_product_image_url(mock_post):
+    text_response = MagicMock()
+    text_response.status_code = 200
+    text_response.json.return_value = {"choices": [{"message": {"content": json.dumps(VALID_PACKAGE_PRODUCT)}}]}
+    mock_post.return_value = text_response
+
+    agent = EmailAgent(api_key="test-key")
+    result = agent.generate(
+        brand=STARBUCKS_WITH_PRODUCT_IMAGE, email_type="promotional", email_classification="B2C",
+        target_customers="all", goal="sell", model="MiniMax-Text-01",
+    )
+    assert 'src="https://brand.starbucks.com/drink.jpg"' in result["mjml"]
+    assert "{{IMAGE_URL}}" not in result["mjml"]
+    assert mock_post.call_count == 1  # no image API call
+
+
+@patch("agent.httpx.post")
+def test_generate_promotional_strips_image_when_no_product_image_url(mock_post):
+    text_response = MagicMock()
+    text_response.status_code = 200
+    text_response.json.return_value = {"choices": [{"message": {"content": json.dumps(VALID_PACKAGE_PRODUCT)}}]}
+    mock_post.return_value = text_response
+
+    agent = EmailAgent(api_key="test-key")
+    result = agent.generate(
+        brand=STARBUCKS, email_type="promotional", email_classification="B2C",
+        target_customers="all", goal="sell", model="MiniMax-Text-01",
+    )
+    assert "{{IMAGE_URL}}" not in result["mjml"]
+    assert "<mj-image" not in result["mjml"]
+    assert mock_post.call_count == 1

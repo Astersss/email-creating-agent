@@ -133,4 +133,22 @@ class EmailAgent:
         content = message.get("content")
         if content is None:
             raise RuntimeError(f"MiniMax API choice missing content: {choices[0]}")
-        return self._parse_response(content)
+
+        package = self._parse_response(content)
+
+        strategy = resolve_image_strategy(email_type)
+        image_url: str | None = None
+
+        if strategy == ImageStrategy.PRODUCT_PHOTO:
+            image_url = brand.product_image_url
+        elif strategy == ImageStrategy.MOOD_GENERATED:
+            image_prompt = package.get("image_prompt")
+            if image_prompt:
+                image_url = self.generate_mood_image(image_prompt)
+
+        if image_url:
+            package["mjml"] = patch_image_url(package["mjml"], image_url)
+        else:
+            package["mjml"] = strip_image_marker(package["mjml"])
+
+        return package
