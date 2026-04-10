@@ -6,7 +6,6 @@ from pathlib import Path
 from brand import BrandConfig, load_brands, load_model
 from agent import EmailAgent, resolve_image_strategy, ImageStrategy
 
-MINIMAX_API_KEY = "sk-api-A3aHSpnsft2LIJcji5z45FFC4Qx3S0Ed8RV7LuTJSJC1XH9XcWN1Adw6HjJS2mrljHSQqyowBR1Hph9g65simY8d_5ypq6C7ka8_6dolS8iDR5pBS3AdtCI"
 OUTPUT_DIR = Path(__file__).parent / "output"
 
 
@@ -120,7 +119,9 @@ def print_results(package: dict, mjml_path: Path, package_path: Path) -> None:
 
 
 def main():
-    api_key = os.environ.get("MINIMAX_API_KEY", MINIMAX_API_KEY)
+    api_key = os.environ.get("MINIMAX_API_KEY")
+    if not api_key:
+        raise SystemExit("Error: MINIMAX_API_KEY environment variable is not set.")
     brands = load_brands()
     model = load_model()
 

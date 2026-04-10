@@ -29,16 +29,21 @@ pip install -r requirements.txt
 
 ## Configuration
 
-**API Key** (choose one):
+### API Key (required)
+
+The app reads your MiniMax API key from the `MINIMAX_API_KEY` environment variable. It will not start without it.
 
 ```bash
-# Recommended: environment variable
 export MINIMAX_API_KEY="sk-..."
-
-# Alternative: edit MINIMAX_API_KEY in main.py
 ```
 
-**Model** (optional): edit `config.json` to change the MiniMax model (default: `MiniMax-M2.7`).
+To make this permanent, add the line above to your `~/.zshrc` or `~/.bashrc`.
+
+> **Never hardcode your API key in source files or commit it to version control.**
+
+### Model (optional)
+
+Edit `config.json` to change the MiniMax model (default: `MiniMax-M2.7`).
 
 **Brands**: add entries to `brands.json` to pre-configure additional brands. Custom brands can also be entered interactively at runtime.
 
