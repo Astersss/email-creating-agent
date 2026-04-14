@@ -1,87 +1,124 @@
 import json
 import re
+import xml.etree.ElementTree as ET
 import httpx
-from enum import Enum
 from brand import BrandConfig
 from prompts import SYSTEM_PROMPT, build_user_prompt
 
-
-class ImageStrategy(Enum):
-    PRODUCT_PHOTO = "product_photo"
-    MOOD_GENERATED = "mood_generated"
-    NONE = "none"
-
-
-_PRODUCT_PHOTO_TYPES = {
-    "promotional", "sale", "product launch", "new arrival", "abandoned cart",
-}
-_MOOD_GENERATED_TYPES = {
-    "seasonal", "loyalty reward", "milestone", "re-engagement",
-    "win-back", "welcome", "event invitation",
-}
-
-
-def resolve_image_strategy(email_type: str) -> ImageStrategy:
-    normalized = email_type.strip().lower()
-    if normalized in _PRODUCT_PHOTO_TYPES:
-        return ImageStrategy.PRODUCT_PHOTO
-    if normalized in _MOOD_GENERATED_TYPES:
-        return ImageStrategy.MOOD_GENERATED
-    return ImageStrategy.NONE
-
-
-def patch_image_url(mjml: str, url: str) -> str:
-    return mjml.replace("{{IMAGE_URL}}", url)
-
-
-def strip_image_marker(mjml: str) -> str:
-    return re.sub(r'<mj-image[^>]*\{\{IMAGE_URL\}\}[^>]*/>', '', mjml)
-
-
 MINIMAX_API_URL = "https://api.minimaxi.chat/v1/text/chatcompletion_v2"
 MINIMAX_IMAGE_API_URL = "https://api.minimax.io/v1/image_generation"
-REQUIRED_KEYS = {"subject_lines", "preheader", "mjml", "rationale"}
+
+_VALID_MJML_TAGS = frozenset({
+    "mjml", "mj-head", "mj-body", "mj-attributes", "mj-all",
+    "mj-font", "mj-section", "mj-group", "mj-column", "mj-text",
+    "mj-button", "mj-image", "mj-divider", "mj-spacer",
+    "mj-social", "mj-social-element", "mj-navbar", "mj-navbar-link",
+    "mj-hero", "mj-raw",
+})
+
+_MOOD_TYPES = frozenset({
+    "seasonal", "re-engagement", "win-back", "loyalty reward",
+    "welcome", "milestone", "event invitation",
+})
+_PRODUCT_TYPES = frozenset({
+    "promotional", "sale", "product launch", "new arrival", "abandoned cart",
+})
+
+TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "generate_image",
+            "description": (
+                "Generate an atmospheric mood image for mood-type emails: "
+                "seasonal, re-engagement, win-back, loyalty reward, welcome, milestone, event invitation. "
+                "Returns {url: string} on success or {error: string} on failure."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "prompt": {
+                        "type": "string",
+                        "description": "Atmospheric image description (max 200 chars, no brand logos or real products)",
+                    }
+                },
+                "required": ["prompt"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "validate_email",
+            "description": (
+                "Check MJML markup for structural errors. Call this after drafting the email and "
+                "before calling save_email. Fix any reported issues, then validate again if needed."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "mjml": {"type": "string", "description": "Complete MJML markup to validate"},
+                    "email_type": {"type": "string", "description": "Email type (e.g. promotional, seasonal, transactional)"},
+                },
+                "required": ["mjml", "email_type"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "save_email",
+            "description": (
+                "Finalize and save the email. Call this only after validate_email returns no issues. "
+                "Pass image_url if an image was generated or the user provided a product image URL."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "subject_lines": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Exactly 3 subject line options, each under 50 characters",
+                    },
+                    "preheader": {"type": "string", "description": "Preheader text, under 100 characters"},
+                    "mjml": {"type": "string", "description": "Complete, valid MJML markup"},
+                    "rationale": {"type": "string", "description": "2-3 sentences on key design decisions"},
+                    "image_url": {
+                        "type": "string",
+                        "description": "URL to inject into {{IMAGE_URL}} placeholder (from generate_image result or user-provided product URL)",
+                    },
+                },
+                "required": ["subject_lines", "preheader", "mjml", "rationale"],
+            },
+        },
+    },
+]
 
 
 class EmailAgent:
     def __init__(self, api_key: str):
         self.api_key = api_key
 
-    def _parse_response(self, content: str) -> dict:
-        if not isinstance(content, str):
-            raise ValueError(f"Expected string content from model, got {type(content).__name__}")
+    def _call_llm(self, model: str, messages: list[dict]) -> dict:
+        response = httpx.post(
+            MINIMAX_API_URL,
+            json={"model": model, "messages": messages, "tools": TOOLS, "tool_choice": "auto"},
+            headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
+            timeout=180.0,
+        )
+        if response.status_code != 200:
+            raise RuntimeError(f"MiniMax API error {response.status_code}: {response.text}")
+        body = response.json()
+        choices = body.get("choices")
+        if not choices:
+            raise RuntimeError(f"MiniMax API returned no choices: {body}")
+        return choices[0]["message"]
 
-        # Strip <think>...</think> reasoning block if present (e.g. MiniMax-M2.5)
-        stripped = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
-
-        # Strip markdown code fences if present (e.g. ```json ... ```)
-        if stripped.startswith("```"):
-            stripped = stripped.split("\n", 1)[-1]
-            stripped = stripped.rsplit("```", 1)[0].strip()
-
-        try:
-            data = json.loads(stripped)
-        except json.JSONDecodeError as e:
-            preview = stripped[:500] if len(stripped) > 500 else stripped
-            raise ValueError(f"Invalid JSON from model: {e}\nRaw content: {preview!r}")
-
-        missing = REQUIRED_KEYS - data.keys()
-        if missing:
-            raise ValueError(f"Missing required keys: {missing}")
-
-        if not isinstance(data["subject_lines"], list):
-            raise ValueError("subject_lines must be a list")
-
-        if len(data["subject_lines"]) == 0:
-            raise ValueError("subject_lines must contain at least one entry")
-
-        return data
-
-    def generate_mood_image(self, image_prompt: str) -> str | None:
+    def _generate_image(self, prompt: str) -> str | None:
         try:
             response = httpx.post(
                 MINIMAX_IMAGE_API_URL,
-                json={"model": "image-01", "prompt": image_prompt, "response_format": "url", "n": 1},
+                json={"model": "image-01", "prompt": prompt, "response_format": "url", "n": 1},
                 headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
                 timeout=60.0,
             )
@@ -92,7 +129,69 @@ class EmailAgent:
         except Exception:
             return None
 
-    def generate(
+    def _validate_mjml(self, mjml: str, email_type: str) -> list[str]:
+        issues = []
+        normalized = email_type.strip().lower()
+
+        if not mjml.strip().startswith("<mjml>"):
+            issues.append("MJML must start with <mjml>")
+        if not mjml.strip().endswith("</mjml>"):
+            issues.append("MJML must end with </mjml>")
+
+        # XML well-formedness — catches unclosed tags, unescaped & < >, mismatched tags
+        try:
+            root = ET.fromstring(mjml)
+            # Tag whitelist — catches invented or wrong-version tags
+            unknown_tags = {el.tag for el in root.iter()} - _VALID_MJML_TAGS
+            if unknown_tags:
+                issues.append(f"Unknown or unsupported MJML tags: {sorted(unknown_tags)}")
+        except ET.ParseError as e:
+            issues.append(f"Invalid XML — {e} (check for unclosed tags or unescaped characters)")
+
+        needs_image = normalized in _MOOD_TYPES or normalized in _PRODUCT_TYPES
+        if needs_image and "{{IMAGE_URL}}" not in mjml:
+            issues.append(
+                f'Email type "{email_type}" requires exactly one '
+                '<mj-image src="{{IMAGE_URL}}" .../> placeholder'
+            )
+
+        suspicious = re.findall(
+            r'src="(https?://(?:picsum|via\.placeholder|placehold|dummyimage|lorempixel)[^"]*)"',
+            mjml,
+        )
+        if suspicious:
+            issues.append(f"Remove external placeholder image URLs from src attributes: {suspicious[:2]}")
+
+        bad_nest = re.findall(r"<mj-section[^>]*>\s*<(?:mj-text|mj-button|mj-image)\b", mjml)
+        if bad_nest:
+            issues.append(
+                "mj-text, mj-button, and mj-image must be inside mj-column, not directly under mj-section"
+            )
+
+        oversized = [f for f in re.findall(r'font-size="(\d+)px"', mjml) if int(f) > 32]
+        if oversized:
+            issues.append(f"Font sizes exceeding 32px: {', '.join(f + 'px' for f in oversized)} — max is 32px")
+
+        return issues
+
+    def _finalize(self, inputs: dict, generated_image_url: str | None, product_image_url: str | None) -> dict:
+        mjml = inputs["mjml"]
+        image_url = inputs.get("image_url") or generated_image_url or product_image_url
+
+        if image_url and "{{IMAGE_URL}}" in mjml:
+            mjml = mjml.replace("{{IMAGE_URL}}", image_url)
+        elif "{{IMAGE_URL}}" in mjml:
+            mjml = re.sub(r"<mj-image[^>]*\{\{IMAGE_URL\}\}[^>]*/?>", "", mjml)
+
+        return {
+            "subject_lines": inputs["subject_lines"],
+            "preheader": inputs["preheader"],
+            "mjml": mjml,
+            "rationale": inputs["rationale"],
+            "image_url": image_url,
+        }
+
+    def run(
         self,
         brand: BrandConfig,
         email_type: str,
@@ -102,75 +201,81 @@ class EmailAgent:
         model: str,
         product_image_url: str | None = None,
     ) -> dict:
-        user_prompt = build_user_prompt(
-            brand=brand,
-            email_type=email_type,
-            email_classification=email_classification,
-            target_customers=target_customers,
-            goal=goal,
-        )
+        messages: list[dict] = [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {
+                "role": "user",
+                "content": build_user_prompt(
+                    brand=brand,
+                    email_type=email_type,
+                    email_classification=email_classification,
+                    target_customers=target_customers,
+                    goal=goal,
+                    product_image_url=product_image_url,
+                ),
+            },
+        ]
+        generated_image_url: str | None = None
 
-        payload = {
-            "model": model,
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_prompt},
-            ],
-        }
+        for iteration in range(10):
+            message = self._call_llm(model, messages)
 
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
+            # Strip <think> reasoning blocks if present (MiniMax reasoning models)
+            content = message.get("content") or ""
+            if isinstance(content, str):
+                content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip()
 
-        response = httpx.post(
-            MINIMAX_API_URL,
-            json=payload,
-            headers=headers,
-            timeout=180.0,
-        )
+            tool_calls = message.get("tool_calls") or []
 
-        if response.status_code != 200:
-            raise RuntimeError(
-                f"MiniMax API error {response.status_code}: {response.text}"
-            )
+            # Append assistant turn to history (keep original content for context)
+            assistant_msg: dict = {"role": "assistant", "content": content}
+            if tool_calls:
+                assistant_msg["tool_calls"] = tool_calls
+            messages.append(assistant_msg)
 
-        body = response.json()
-        choices = body.get("choices")
-        if not choices:
-            raise RuntimeError(f"MiniMax API returned no choices: {body}")
-        message = choices[0].get("message", {})
-        content = message.get("content")
-        if not content:
-            raise RuntimeError(
-                f"MiniMax API returned empty content. finish_reason={choices[0].get('finish_reason')!r} "
-                f"message={message!r}"
-            )
+            if not tool_calls:
+                raise RuntimeError(
+                    f"Agent stopped without saving the email (iteration {iteration + 1}). "
+                    f"Last response: {content[:300]!r}"
+                )
 
-        package = self._parse_response(content)
+            tool_results: list[dict] = []
+            final_package: dict | None = None
 
-        strategy = resolve_image_strategy(email_type)
-        image_url: str | None = None
+            for call in tool_calls:
+                call_id = call["id"]
+                fn_name = call["function"]["name"]
+                try:
+                    fn_args = json.loads(call["function"]["arguments"])
+                except json.JSONDecodeError as e:
+                    result: dict = {"error": f"Failed to parse tool arguments: {e}"}
+                    tool_results.append({"role": "tool", "tool_call_id": call_id, "content": json.dumps(result)})
+                    continue
 
-        if strategy == ImageStrategy.PRODUCT_PHOTO:
-            image_url = product_image_url
-        elif strategy == ImageStrategy.MOOD_GENERATED:
-            image_prompt = package.get("image_prompt")
-            if image_prompt:
-                image_url = self.generate_mood_image(image_prompt)
-                if image_url is None:
-                    package["_warning"] = "Mood image generation failed — image was omitted."
-            else:
-                package["_warning"] = "Model did not return an image_prompt for this mood email — image was omitted."
+                if fn_name == "generate_image":
+                    url = self._generate_image(fn_args["prompt"])
+                    if url:
+                        generated_image_url = url
+                        result = {"url": url}
+                    else:
+                        result = {"error": "Image generation failed — you may proceed without an image"}
 
-        marker_present = "{{IMAGE_URL}}" in package["mjml"]
+                elif fn_name == "validate_email":
+                    issues = self._validate_mjml(fn_args["mjml"], fn_args["email_type"])
+                    result = {"valid": not issues, "issues": issues}
 
-        if image_url and marker_present:
-            package["mjml"] = patch_image_url(package["mjml"], image_url)
-        elif image_url and not marker_present:
-            package["_warning"] = "Model did not include {{IMAGE_URL}} marker — product image was not inserted."
-            package["mjml"] = strip_image_marker(package["mjml"])
-        else:
-            package["mjml"] = strip_image_marker(package["mjml"])
+                elif fn_name == "save_email":
+                    final_package = self._finalize(fn_args, generated_image_url, product_image_url)
+                    result = {"status": "saved"}
 
-        return package
+                else:
+                    result = {"error": f"Unknown tool: {fn_name}"}
+
+                tool_results.append({"role": "tool", "tool_call_id": call_id, "content": json.dumps(result)})
+
+            messages.extend(tool_results)
+
+            if final_package is not None:
+                return final_package
+
+        raise RuntimeError("Agent exceeded 10 iterations without completing the email.")

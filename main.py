@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 from brand import BrandConfig, load_brands, load_model
-from agent import EmailAgent, resolve_image_strategy, ImageStrategy
+from agent import EmailAgent, _PRODUCT_TYPES
 
 OUTPUT_DIR = Path(__file__).parent / "output"
 
@@ -74,7 +74,7 @@ def prompt_campaign_inputs() -> dict:
         print(f"  {description}")
         print(f"  Example: {example}")
         while True:
-            value = input(f"  > ").strip()
+            value = input("  > ").strip()
             if value:
                 break
             print(f"  {label} cannot be empty.")
@@ -86,12 +86,11 @@ _TINY_PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJA
 
 
 def _strip_base64_for_preview(mjml: str) -> str:
-    import re
-    return re.sub(r'data:[^;]+;base64,[A-Za-z0-9+/=]+', _TINY_PNG, mjml)
+    return re.sub(r"data:[^;]+;base64,[A-Za-z0-9+/=]+", _TINY_PNG, mjml)
 
 
 def _make_slug(text: str) -> str:
-    return re.sub(r'[^a-z0-9]+', '_', text.strip().lower()).strip('_')
+    return re.sub(r"[^a-z0-9]+", "_", text.strip().lower()).strip("_")
 
 
 def save_output(brand_id: str, email_type: str, package: dict) -> tuple[Path, Path]:
@@ -110,8 +109,8 @@ def print_results(package: dict, mjml_path: Path, package_path: Path) -> None:
     for i, line in enumerate(package["subject_lines"], 1):
         print(f"  {i}. {line}")
     print(f"\n=== PREHEADER ===\n  {package['preheader']}")
-    if "_warning" in package:
-        print(f"\n⚠️  WARNING: {package['_warning']}")
+    if package.get("image_url"):
+        print(f"\n=== IMAGE ===\n  {package['image_url']}")
     print(f"\n=== RATIONALE ===\n  {package['rationale']}")
     print("\n=== OUTPUT FILES ===")
     print(f"  MJML:    {mjml_path}")
@@ -122,6 +121,7 @@ def main():
     api_key = os.environ.get("MINIMAX_API_KEY")
     if not api_key:
         raise SystemExit("Error: MINIMAX_API_KEY environment variable is not set.")
+
     brands = load_brands()
     model = load_model()
 
@@ -135,13 +135,13 @@ def main():
     inputs = prompt_campaign_inputs()
 
     product_image_url = None
-    if resolve_image_strategy(inputs["email_type"]) == ImageStrategy.PRODUCT_PHOTO:
-        print("\nProduct image URL (optional — press Enter to skip for text-only email)")
+    if inputs["email_type"].strip().lower() in _PRODUCT_TYPES:
+        print("\nProduct image URL (optional — press Enter to skip)")
         product_image_url = input("  > ").strip() or None
 
     print("\nGenerating email...")
     agent = EmailAgent(api_key=api_key)
-    package = agent.generate(brand=brand, model=model, product_image_url=product_image_url, **inputs)
+    package = agent.run(brand=brand, model=model, product_image_url=product_image_url, **inputs)
 
     mjml_path, package_path = save_output(brand.id, inputs["email_type"], package)
     print_results(package, mjml_path, package_path)

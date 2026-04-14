@@ -1,12 +1,14 @@
 # Email Creating Agent
 
-An AI-powered CLI tool that generates professional, brand-customized marketing emails using the MiniMax API. It produces complete email packages including subject lines, preheaders, responsive MJML templates, and design rationale.
+An AI agent that generates professional, brand-customized marketing emails using the MiniMax API. Unlike a simple LLM call, it runs a real agent loop: the model drafts the email, validates it, generates images when needed, self-corrects any issues, and saves the result — all driven by tool calls.
 
 ## Features
 
+- **Real agent loop** — up to 10 LLM turns; the model decides what tools to call and when
+- **Self-validating** — agent calls `validate_email` after drafting, reads the issues, fixes them, and re-validates before saving
 - **Brand-aware generation** — respects brand colors, fonts, voice, and guidelines
 - **Multiple email types** — promotional, seasonal, loyalty reward, re-engagement, welcome, transactional, and more
-- **Smart image handling** — uses product URLs, generates mood images via AI, or omits images based on email type
+- **Smart image handling** — uses product URLs for product emails, generates mood images via AI for seasonal/re-engagement/welcome types, omits images for transactional
 - **MJML output** — valid, mobile-first responsive email templates
 - **Flexible brand management** — choose from pre-configured brands or enter a custom brand at runtime
 
@@ -59,10 +61,12 @@ The CLI will walk you through:
 2. Specifying email type, classification, target audience, and campaign goal
 3. Providing a product image URL (for promotional/product emails)
 
+The agent then runs autonomously — drafting, validating, fixing issues, generating images if needed, and saving.
+
 Output files are saved to the `output/` directory:
 
 - `{brand}_{type}_{timestamp}.mjml` — MJML template for preview
-- `{brand}_{type}_{timestamp}_package.json` — full package (subject lines, preheader, MJML, rationale)
+- `{brand}_{type}_{timestamp}_package.json` — full package (subject lines, preheader, MJML, rationale, image_url)
 
 ## Email Types & Image Strategies
 
@@ -72,19 +76,52 @@ Output files are saved to the `output/` directory:
 | seasonal, loyalty reward, re-engagement, welcome, milestone | AI-generated mood image |
 | transactional, newsletter | No image |
 
-## Project Structure
+## How the agent works
+
+```
+User input
+    │
+    ▼
+LLM drafts MJML email
+    │
+    ▼
+validate_email()  ◄─── fixes & retries if issues found
+    │ no issues
+    ▼
+generate_image()  (mood/product emails only)
+    │
+    ▼
+save_email()  → injects image URL, strips orphaned placeholders, writes files
+```
+
+The model drives the loop. Each tool result is fed back so the agent can read it and decide the next step.
+
+## MJML validation checks
+
+The `validate_email` tool catches:
+
+| Check | What it catches |
+|-------|----------------|
+| XML well-formedness | Unclosed tags, mismatched tags, unescaped characters |
+| Tag whitelist | Invented or MJML-3-only tags (`mj-carousel`, `<div>`, etc.) |
+| Image placeholder | Missing `{{IMAGE_URL}}` for email types that require an image |
+| External placeholder URLs | `picsum.photos`, `via.placeholder.com`, etc. in `src` attributes |
+| Nesting | `mj-text`/`mj-button`/`mj-image` directly under `mj-section` instead of `mj-column` |
+| Font sizes | Any `font-size` exceeding 32px |
+
+## Project structure
 
 ```
 email-creating-agent/
 ├── main.py          # CLI entry point and output management
-├── agent.py         # EmailAgent: API calls and image resolution
+├── agent.py         # EmailAgent: tool definitions, agent loop, validation
 ├── brand.py         # BrandConfig dataclass and JSON loaders
-├── prompts.py       # System and user prompt templates
+├── prompts.py       # System prompt and user prompt builder
 ├── brands.json      # Pre-configured brand database
-├── config.json      # Model selection
+├── config.json      # Model selection (default: MiniMax-M2.7)
 ├── requirements.txt
-├── output/          # Generated email files
-└── tests/           # Unit and integration tests
+├── output/          # Generated email files (git-ignored)
+└── tests/           # Unit tests
 ```
 
 ## Running Tests
@@ -95,7 +132,7 @@ pytest -v                        # verbose
 pytest tests/test_agent.py       # single file
 ```
 
-## Output Example
+## Output example
 
 ```json
 {
@@ -106,6 +143,7 @@ pytest tests/test_agent.py       # single file
   ],
   "preheader": "A new seasonal drink crafted for you — available now...",
   "mjml": "<mjml>...</mjml>",
-  "rationale": "Hero section opens with brand green (#00704A)..."
+  "rationale": "Hero section opens with brand green (#00704A)...",
+  "image_url": "https://cdn.minimax.io/..."
 }
 ```
