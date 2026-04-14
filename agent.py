@@ -1,5 +1,6 @@
 import json
 import re
+import time
 import xml.etree.ElementTree as ET
 import httpx
 from brand import BrandConfig
@@ -25,6 +26,31 @@ _PRODUCT_TYPES = frozenset({
 })
 
 TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "review_email",
+            "description": (
+                "Use an LLM to review email content quality, brand guideline compliance, and subject line "
+                "effectiveness. Call this after validate_email passes and before generate_image or save_email. "
+                "If issues are returned, fix them and call review_email again until it passes."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "subject_lines": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "The 3 subject line options to review",
+                    },
+                    "preheader": {"type": "string", "description": "The preheader text to review"},
+                    "mjml": {"type": "string", "description": "The complete MJML email body to review"},
+                    "email_type": {"type": "string", "description": "Email type for context"},
+                },
+                "required": ["subject_lines", "preheader", "mjml", "email_type"],
+            },
+        },
+    },
     {
         "type": "function",
         "function": {
@@ -100,19 +126,32 @@ class EmailAgent:
         self.api_key = api_key
 
     def _call_llm(self, model: str, messages: list[dict]) -> dict:
-        response = httpx.post(
-            MINIMAX_API_URL,
-            json={"model": model, "messages": messages, "tools": TOOLS, "tool_choice": "auto"},
-            headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
-            timeout=180.0,
-        )
-        if response.status_code != 200:
-            raise RuntimeError(f"MiniMax API error {response.status_code}: {response.text}")
-        body = response.json()
-        choices = body.get("choices")
-        if not choices:
-            raise RuntimeError(f"MiniMax API returned no choices: {body}")
-        return choices[0]["message"]
+        last_error: Exception | None = None
+        for attempt in range(3):
+            if attempt > 0:
+                time.sleep(3 * attempt)
+            try:
+                response = httpx.post(
+                    MINIMAX_API_URL,
+                    json={"model": model, "messages": messages, "tools": TOOLS, "tool_choice": "auto"},
+                    headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
+                    timeout=180.0,
+                )
+                if response.status_code != 200:
+                    raise RuntimeError(f"MiniMax API error {response.status_code}: {response.text}")
+                body = response.json()
+                choices = body.get("choices")
+                if not choices:
+                    status = body.get("base_resp", {})
+                    raise RuntimeError(
+                        f"MiniMax API returned no choices "
+                        f"(code={status.get('status_code')} msg={status.get('status_msg')!r})"
+                    )
+                return choices[0]["message"]
+            except RuntimeError as e:
+                last_error = e
+                print(f"  [retry {attempt + 1}/3] {e}")
+        raise last_error
 
     def _generate_image(self, prompt: str) -> str | None:
         try:
@@ -128,6 +167,67 @@ class EmailAgent:
             return urls[0] if urls else None
         except Exception:
             return None
+
+    def _review_email_content(
+        self, subject_lines: list[str], preheader: str, mjml: str, email_type: str
+    ) -> list[str]:
+        brand = self._brand
+        brand_lines = [f"Brand: {brand.name}"]
+        if brand.primary_color:
+            brand_lines.append(f"Primary color: {brand.primary_color}")
+        if brand.secondary_color:
+            brand_lines.append(f"Secondary color: {brand.secondary_color}")
+        if brand.brand_voice:
+            brand_lines.append(f"Brand voice: {brand.brand_voice}")
+        if brand.tagline:
+            brand_lines.append(f"Tagline: {brand.tagline}")
+        brand_section = "\n".join(brand_lines)
+
+        numbered_subjects = "\n".join(f"{i + 1}. {s}" for i, s in enumerate(subject_lines))
+
+        review_prompt = f"""You are a senior email marketing reviewer. Evaluate this email draft strictly.
+
+{brand_section}
+Email type: {email_type}
+
+Subject lines:
+{numbered_subjects}
+
+Preheader: {preheader}
+
+MJML:
+{mjml}
+
+Check each of the following criteria:
+1. Subject lines are compelling and specific (not generic), each under 50 characters, and meaningfully distinct from each other
+2. Preheader complements the subject line and is under 100 characters
+3. Body copy is concise (2-3 sentences max), matches the brand voice, and avoids filler phrases
+4. CTA copy is clear and action-oriented
+5. No invented promo codes, discounts, or offers that were not in the brief
+
+Respond with ONLY valid JSON — no markdown, no explanation:
+{{"valid": true, "issues": []}}
+or
+{{"valid": false, "issues": ["specific issue 1", "specific issue 2"]}}"""
+
+        try:
+            response = httpx.post(
+                MINIMAX_API_URL,
+                json={"model": self._model, "messages": [{"role": "user", "content": review_prompt}]},
+                headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
+                timeout=60.0,
+            )
+            if response.status_code != 200:
+                return []
+            content = response.json().get("choices", [{}])[0].get("message", {}).get("content", "")
+            content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip()
+            json_match = re.search(r"\{.*\}", content, re.DOTALL)
+            if not json_match:
+                return []
+            data = json.loads(json_match.group())
+            return data.get("issues", [])
+        except Exception:
+            return []
 
     def _validate_mjml(self, mjml: str, email_type: str) -> list[str]:
         issues = []
@@ -201,6 +301,9 @@ class EmailAgent:
         model: str,
         product_image_url: str | None = None,
     ) -> dict:
+        self._brand = brand
+        self._model = model
+
         messages: list[dict] = [
             {"role": "system", "content": SYSTEM_PROMPT},
             {
@@ -217,7 +320,7 @@ class EmailAgent:
         ]
         generated_image_url: str | None = None
 
-        for iteration in range(10):
+        for iteration in range(20):
             message = self._call_llm(model, messages)
 
             # Strip <think> reasoning blocks if present (MiniMax reasoning models)
@@ -252,7 +355,16 @@ class EmailAgent:
                     tool_results.append({"role": "tool", "tool_call_id": call_id, "content": json.dumps(result)})
                     continue
 
-                if fn_name == "generate_image":
+                if fn_name == "review_email":
+                    issues = self._review_email_content(
+                        fn_args["subject_lines"],
+                        fn_args["preheader"],
+                        fn_args["mjml"],
+                        fn_args["email_type"],
+                    )
+                    result = {"valid": not issues, "issues": issues}
+
+                elif fn_name == "generate_image":
                     url = self._generate_image(fn_args["prompt"])
                     if url:
                         generated_image_url = url
@@ -278,4 +390,4 @@ class EmailAgent:
             if final_package is not None:
                 return final_package
 
-        raise RuntimeError("Agent exceeded 10 iterations without completing the email.")
+        raise RuntimeError("Agent exceeded 20 iterations without completing the email.")

@@ -29,14 +29,51 @@ def select_brand(brands: list[BrandConfig]) -> BrandConfig:
         print(f"Please enter a number between 0 and {len(brands)}.")
 
 
+_PRESET_COLORS = [
+    ("Red",    "#E53935"),
+    ("Orange", "#FB8C00"),
+    ("Yellow", "#FDD835"),
+    ("Green",  "#43A047"),
+    ("Teal",   "#00897B"),
+    ("Blue",   "#1E88E5"),
+    ("Indigo", "#3949AB"),
+    ("Purple", "#8E24AA"),
+    ("Pink",   "#D81B60"),
+    ("Black",  "#212121"),
+]
+
+
+def _pick_color(label: str) -> str | None:
+    print(f"\n{label} (optional)")
+    for i, (name, hex_val) in enumerate(_PRESET_COLORS, 1):
+        print(f"  {i:2}. {name:<8} {hex_val}")
+    print(f"  {len(_PRESET_COLORS) + 1:2}. Enter custom hex")
+    print("   0. Skip")
+
+    while True:
+        choice = input("  > ").strip()
+        if choice == "0" or choice == "":
+            return None
+        if choice.isdigit():
+            idx = int(choice)
+            if 1 <= idx <= len(_PRESET_COLORS):
+                return _PRESET_COLORS[idx - 1][1]
+            if idx == len(_PRESET_COLORS) + 1:
+                while True:
+                    hex_val = input("  Custom hex (e.g. #FF5733): ").strip()
+                    if hex_val:
+                        return hex_val if hex_val.startswith("#") else f"#{hex_val}"
+        print(f"  Please enter a number between 0 and {len(_PRESET_COLORS) + 1}.")
+
+
 def _enter_custom_brand() -> BrandConfig:
     while True:
-        name = input("Brand name: ").strip()
+        name = input("\nBrand name: ").strip()
         if name:
             break
         print("Brand name cannot be empty.")
-    color = input("Primary color (hex, optional — press Enter to skip): ").strip() or None
-    logo = input("Logo URL (optional — press Enter to skip): ").strip() or None
+    color = _pick_color("Primary color")
+    logo = input("\nLogo URL (optional — press Enter to skip): ").strip() or None
     return BrandConfig(id=make_brand_id(name), name=name, primary_color=color, logo_url=logo)
 
 
