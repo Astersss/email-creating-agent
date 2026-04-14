@@ -4,13 +4,15 @@ An AI agent that generates professional, brand-customized marketing emails using
 
 ## Features
 
-- **Real agent loop** — up to 10 LLM turns; the model decides what tools to call and when
-- **Self-validating** — agent calls `validate_email` after drafting, reads the issues, fixes them, and re-validates before saving
+- **Real agent loop** — up to 20 LLM turns; the model decides what tools to call and when
+- **Self-validating** — agent calls `validate_email` after drafting, reads the issues, fixes them, and re-validates until it passes
+- **LLM content review** — agent calls `review_email` after structural validation; a separate LLM acts as a senior reviewer checking subject line quality, brand voice, copy conciseness, and CTA clarity — fixes and re-reviews until it passes
 - **Brand-aware generation** — respects brand colors, fonts, voice, and guidelines
 - **Multiple email types** — promotional, seasonal, loyalty reward, re-engagement, welcome, transactional, and more
 - **Smart image handling** — uses product URLs for product emails, generates mood images via AI for seasonal/re-engagement/welcome types, omits images for transactional
 - **MJML output** — valid, mobile-first responsive email templates
-- **Flexible brand management** — choose from pre-configured brands or enter a custom brand at runtime
+- **Flexible brand management** — choose from pre-configured brands or enter a custom brand at runtime; color picker included for easy primary color selection
+- **Resilient API calls** — automatic retry with backoff on transient MiniMax API errors
 
 ## Requirements
 
@@ -85,7 +87,10 @@ User input
 LLM drafts MJML email
     │
     ▼
-validate_email()  ◄─── fixes & retries if issues found
+validate_email()  ◄─── fixes & retries if structural issues found
+    │ no issues
+    ▼
+review_email()    ◄─── fixes & retries if content/brand issues found
     │ no issues
     ▼
 generate_image()  (mood/product emails only)
